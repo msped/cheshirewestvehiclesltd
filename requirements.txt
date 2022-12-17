@@ -11,6 +11,7 @@ lazy-object-proxy==1.8.0
 mccabe==0.7.0
 Pillow==9.3.0
 platformdirs==2.6.0
+psycopg2==2.9.5
 pylint==2.15.9
 pylint-django==2.5.3
 pylint-plugin-utils==0.7
