@@ -1,0 +1,12 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.linting.pylintArgs": [
+        "--disable=C0111", // missing docstring
+        "--load-plugins=pylint_django",
+        "--disable=django-not-configured",
+        //"--django-settings-module=backend.settings",
+        "--disable=abstract-class-instantiated",
+    ],
+}
