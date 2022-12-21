@@ -21,7 +21,7 @@ class GalleryItem(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(f'{self.make} {self.model} {self.trim} {self.year}')
-        super(GalleryItem).save(*args, **kwargs)
+        super(GalleryItem, self).save(*args, **kwargs)
 
 class GalleryImage(models.Model):
     """Image for galleryItem"""
@@ -33,4 +33,7 @@ class GalleryImage(models.Model):
         ordering = ['order_of_images']
 
     def __str__(self):
-        return f'{self.id} {self.item}'
+        return (
+            f'Order: {self.order_of_images} - ({self.item.id}) {self.item.make}'
+            f' {self.item.model} {self.item.trim}'
+        )
