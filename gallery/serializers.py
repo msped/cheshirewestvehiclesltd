@@ -33,11 +33,12 @@ class GalleryImageSerializer(serializers.ModelSerializer):
 class GallerySerializer(serializers.ModelSerializer):
     """Serializer for a full gallery item"""
     slug = serializers.ReadOnlyField()
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = GalleryItem
         fields = [
-            'id'
+            'id',
             'slug',
             'make',
             'model',
@@ -48,7 +49,7 @@ class GallerySerializer(serializers.ModelSerializer):
             'images',
         ]
 
-        def get_images(self, obj):
-            images = GalleryImage.objects.filter(item_id=obj.id)
-            serializer = GalleryImageSerializer(images, many=True)
-            return serializer.data
+    def get_images(self, obj):
+        images = GalleryImage.objects.filter(item_id=obj.id)
+        serializer = GalleryImageSerializer(images, many=True)
+        return serializer.data
