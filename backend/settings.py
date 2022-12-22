@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    "corsheaders",
+    'corsheaders',
+    'sales',
     'gallery',
     'django_cleanup.apps.CleanupConfig',
 ]
