@@ -76,6 +76,9 @@ class Reservations(models.Model):
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
     paymentIntent_id = models.CharField(max_length=150)
 
+    def __str__(self):
+        return f'{self.name} reserved {self.vehicle}'
+
 class TradeIn(models.Model):
     reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
     make = models.CharField(max_length=15)
@@ -86,4 +89,7 @@ class TradeIn(models.Model):
         default=datetime.date.today().year
     )
     mileage = models.IntegerField()
-    comments = models.TextField()
+    comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'Trade In Vehicle for {self.reservation.id}'
