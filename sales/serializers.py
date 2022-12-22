@@ -68,7 +68,7 @@ class VehicleSerializerList(serializers.ModelSerializer):
     )
 
     def get_images(self, obj):
-        images = VehicleImages.objects.get(vehicle_id=obj.id, is_main=True)
+        images = VehicleImages.objects.get(vehicle_id=obj.id, order_of_images=1)
         serializer = VehicleImagesSerializer(images, many=False)
         return serializer.data
 
