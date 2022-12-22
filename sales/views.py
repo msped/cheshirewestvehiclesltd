@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from .models import Vehicle
-from .serializers import VehicleSerializerList, VehicleSerializer
+from .serializers import VehicleSerializerList, VehicleSerializer, VehicleStateSerializer
 
 class ListVehicles(ListAPIView):
     serializer_class = VehicleSerializerList
@@ -14,3 +14,9 @@ class VehicleDetail(RetrieveAPIView):
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
     queryset = Vehicle.objects.all()
+
+class VehicleState(RetrieveAPIView):
+    serializer_class = VehicleStateSerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'vehicle_id'
+    queryset = Vehicle.objects.filter(reserved="1")
