@@ -6,10 +6,12 @@ dill==0.3.6
 Django==4.1.4
 django-cleanup==6.0.0
 django-cors-headers==3.13.0
+django-phonenumber-field==7.0.1
 djangorestframework==3.14.0
 isort==5.11.3
 lazy-object-proxy==1.8.0
 mccabe==0.7.0
+phonenumbers==8.13.3
 Pillow==9.3.0
 platformdirs==2.6.0
 psycopg2==2.9.5
