@@ -2,10 +2,10 @@ from django.db.models import Q
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from .models import Vehicle
-from .serializers import VehicleSerializerList, VehicleSerializer, VehicleStateSerializer
+from .serializers import VehicleSerializer, VehicleStateSerializer
 
 class ListVehicles(ListAPIView):
-    serializer_class = VehicleSerializerList
+    serializer_class = VehicleSerializer
     queryset = Vehicle.objects.filter(Q(reserved='1') | Q(reserved='2'))
     paginate_by = 10
 
