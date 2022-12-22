@@ -1,6 +1,6 @@
+import json
 import shutil
 import tempfile
-from PIL import Image
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
@@ -74,3 +74,93 @@ class TestGalleryModels(APITestCase):
     def test_in_order(self):
         self.gallery_item()
         self.gallery_image()
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
+class TestGalleryApp(APITestCase):
+
+    def setUp(self):
+        g_1 = GalleryItem.objects.create(
+            id=1,
+            make="Mercedes",
+            model="A Class",
+            trim="A250",
+            year=2013,
+            description="loads of stuff",
+            published=True
+        )
+        g_1.save()
+        g_2 = GalleryItem.objects.create(
+            id=2,
+            make="Mercedes",
+            model="190E",
+            trim="Cosworth",
+            year=1992,
+            description="loads of stuff",
+            published=True
+        )
+        g_2.save()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        return super().tearDownClass()
+
+    def test_gallery_list(self):
+        response = self.client.get('/api/gallery/')
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                'count': 2,
+                'next': None,
+                'previous': None,
+                'results': [
+                    {
+                        'id': 2,
+                        'slug': 'mercedes-190e-cosworth-1992',
+                        'make': 'Mercedes',
+                        'model': '190E',
+                        'trim': 'Cosworth',
+                        'year': 1992,
+                        'description': 'loads of stuff',
+                        'published': True,
+                        'images': []
+                    },
+                    {
+                        'id': 1,
+                        'slug': 'mercedes-a-class-a250-2013',
+                        'make': 'Mercedes',
+                        'model': 'A Class',
+                        'trim': 'A250',
+                        'year': 2013,
+                        'description': 'loads of stuff',
+                        'published': True,
+                        'images': [],
+                    }
+                ]
+            }
+        )
+
+    def test_gallery_detail(self):
+        response = self.client.get('/api/gallery/mercedes-a-class-a250-2013/')
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                'id': 1,
+                'slug': 'mercedes-a-class-a250-2013',
+                'make': 'Mercedes',
+                'model': 'A Class',
+                'trim': 'A250',
+                'year': 2013,
+                'description': 'loads of stuff',
+                'published': True,
+                'images': []
+            }
+        )
