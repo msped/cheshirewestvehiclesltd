@@ -1,8 +1,9 @@
 from django.contrib import admin
-from .models import Vehicle, VehicleImages, Reservations, TradeIn
+from .models import Vehicle, VehicleImages, Reservations, TradeIn, ReservationAmount
 
 # Register your models here.
 
+admin.site.register(ReservationAmount)
 admin.site.register(Reservations)
 admin.site.register(TradeIn)
 
