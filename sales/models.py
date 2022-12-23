@@ -74,7 +74,7 @@ class Reservations(models.Model):
     email = models.EmailField()
     phone_number = PhoneNumberField()
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
-    paymentIntent_id = models.CharField(max_length=150)
+    charge_id = models.CharField(max_length=150)
 
     def __str__(self):
         return f'{self.name} reserved {self.vehicle}'
