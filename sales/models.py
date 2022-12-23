@@ -102,4 +102,4 @@ class ReservationAmount(models.Model):
         activity = "Inactive"
         if self.active:
             activity = "Active"
-        return f'{self.amount} - {activity}'
+        return f'£{self.amount} - {activity}'
