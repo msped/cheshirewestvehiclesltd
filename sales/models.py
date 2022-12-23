@@ -74,7 +74,7 @@ class Reservations(models.Model):
     email = models.EmailField()
     phone_number = PhoneNumberField()
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
-    charge_id = models.CharField(max_length=150)
+    paymentIntent_id = models.CharField(max_length=150)
 
     def __str__(self):
         return f'{self.name} reserved {self.vehicle}'
@@ -93,3 +93,13 @@ class TradeIn(models.Model):
 
     def __str__(self):
         return f'Trade In Vehicle for {self.reservation.id}'
+
+class ReservationAmount(models.Model):
+    amount = models.IntegerField()
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        activity = "Inactive"
+        if self.active:
+            activity = "Active"
+        return f'{self.amount} - {activity}'
