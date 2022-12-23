@@ -5,7 +5,15 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from rest_framework.test import APITestCase
-from .models import Vehicle, VehicleImages, Reservations, TradeIn
+from .models import (
+    Vehicle,
+    VehicleImages,
+    Reservations,
+    TradeIn,
+    ReservationAmount
+)
+
+from .utils import get_reservation_amount
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -193,8 +201,32 @@ class TestSalesModels(APITestCase):
             f'Trade In Vehicle for {reservation.id}'
         )
 
+    def reservation_amount_active(self):
+        ReservationAmount.objects.create(
+            amount=100,
+            active=True
+        ).save()
+        reservation = ReservationAmount.objects.get(active=True)
+        self.assertEqual(
+            str(reservation),
+            '£100 - Active'
+        )
+
+    def reservation_amount_inactive(self):
+        ReservationAmount.objects.create(
+            amount=150,
+            active=False
+        ).save()
+        reservation = ReservationAmount.objects.get(active=False)
+        self.assertEqual(
+            str(reservation),
+            '£150 - Inactive'
+        )
+
     def test_in_order(self):
         self.vehicle_model()
         self.vehicle_images()
         self.reservations_model()
         self.trade_in_model()
+        self.reservation_amount_active()
+        self.reservation_amount_inactive()
