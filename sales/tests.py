@@ -230,3 +230,17 @@ class TestSalesModels(APITestCase):
         self.trade_in_model()
         self.reservation_amount_active()
         self.reservation_amount_inactive()
+
+class TestSalesUtils(APITestCase):
+
+    def test_get_reservation_amount_doesnt_exist(self):
+        resveration_amount = get_reservation_amount()
+        self.assertEqual(resveration_amount, 100)
+
+    def test_get_reservation_amount_exists(self):
+        ReservationAmount.objects.create(
+            amount=150,
+            active=True
+        ).save()
+        resveration_amount = get_reservation_amount()
+        self.assertEqual(resveration_amount, 150)
