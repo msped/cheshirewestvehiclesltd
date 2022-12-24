@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.utils.text import slugify
@@ -70,10 +71,18 @@ class VehicleImages(models.Model):
         return f"{self.vehicle.id} - {self.id}"
 
 class Reservations(models.Model):
+    order_id = models.CharField(
+        max_length=150,
+        blank=True,
+        unique=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     name = models.CharField(max_length=75)
     email = models.EmailField()
     phone_number = PhoneNumberField()
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
+    reservation_date = models.DateField(default=datetime.date.today)
     paymentIntent_id = models.CharField(max_length=150)
 
     def __str__(self):
