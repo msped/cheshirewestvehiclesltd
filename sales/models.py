@@ -83,7 +83,8 @@ class Reservations(models.Model):
     phone_number = PhoneNumberField()
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
     reservation_date = models.DateField(default=datetime.date.today)
-    paymentIntent_id = models.CharField(max_length=150)
+    paymentIntent_id = models.CharField(max_length=150, blank=True, null=True)
+    paid = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.name} reserved {self.vehicle}'
