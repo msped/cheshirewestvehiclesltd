@@ -110,6 +110,7 @@ class ReservationAmount(models.Model):
 
     def __str__(self):
         activity = "Inactive"
+        formatted_currency = '{:.2f}'.format(self.amount / 100)
         if self.active:
             activity = "Active"
-        return f'£{self.amount} - {activity}'
+        return f'£{formatted_currency} - {activity}'
