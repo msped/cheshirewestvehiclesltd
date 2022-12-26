@@ -203,24 +203,24 @@ class TestSalesModels(APITestCase):
 
     def reservation_amount_active(self):
         ReservationAmount.objects.create(
-            amount=100,
+            amount=10000,
             active=True
         ).save()
         reservation = ReservationAmount.objects.get(active=True)
         self.assertEqual(
             str(reservation),
-            '£100 - Active'
+            '£100.00 - Active'
         )
 
     def reservation_amount_inactive(self):
         ReservationAmount.objects.create(
-            amount=150,
+            amount=15000,
             active=False
         ).save()
         reservation = ReservationAmount.objects.get(active=False)
         self.assertEqual(
             str(reservation),
-            '£150 - Inactive'
+            '£150.00 - Inactive'
         )
 
     def test_in_order(self):
@@ -235,7 +235,7 @@ class TestSalesUtils(APITestCase):
 
     def test_get_reservation_amount_doesnt_exist(self):
         resveration_amount = get_reservation_amount()
-        self.assertEqual(resveration_amount, 100)
+        self.assertEqual(resveration_amount, 10000)
 
     def test_get_reservation_amount_exists(self):
         ReservationAmount.objects.create(
