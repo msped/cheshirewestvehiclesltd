@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'corsheaders',
+    'accounts',
     'sales',
     'gallery',
     'django_cleanup.apps.CleanupConfig',
