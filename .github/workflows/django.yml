@@ -46,5 +46,8 @@ jobs:
         DB_PORT: ${{ secrets.DB_PORT }}
         EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+        STRIPE_PUBLISHABLE: ${{ secrets.STRIPE_PUBLISHABLE }}
+        STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
       run: |
         coverage run manage.py test && coverage report --fail-under=90
