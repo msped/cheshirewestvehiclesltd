@@ -11,7 +11,7 @@ from .views import (
 urlpatterns = [
     path('', ListVehicles.as_view(), name="list_of_vehicles"),
     path('<str:slug>/', VehicleDetail.as_view(), name="vehicle_detail"),
-    path('state/<int:vehicle_id>/', VehicleState.as_view(), name="vehicle_state"),
+    path('state/<str:slug>/', VehicleState.as_view(), name="vehicle_state"),
     path(
         'reserve/<int:vehicle_id>/',
         StripePaymentIntentReserveVehicle.as_view(),

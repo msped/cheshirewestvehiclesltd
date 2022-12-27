@@ -27,8 +27,8 @@ class VehicleDetail(RetrieveAPIView):
 
 class VehicleState(RetrieveAPIView):
     serializer_class = VehicleStateSerializer
-    lookup_field = 'id'
-    lookup_url_kwarg = 'vehicle_id'
+    lookup_field = 'slug'
+    lookup_url_kwarg = 'slug'
     queryset = Vehicle.objects.filter(reserved="1")
 
 @csrf_exempt
