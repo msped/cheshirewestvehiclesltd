@@ -5,6 +5,7 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from rest_framework.test import APITestCase
+
 from .models import (
     Vehicle,
     VehicleImages,
@@ -12,7 +13,6 @@ from .models import (
     TradeIn,
     ReservationAmount
 )
-
 from .utils import get_reservation_amount
 
 MEDIA_ROOT = tempfile.mkdtemp()
@@ -38,6 +38,23 @@ class TestView(APITestCase):
             price=16110.00
         )
         v_1.save()
+        v_2 = Vehicle.objects.create(
+            slug="mercedes-190e-cosworth",
+            make="Mercedes",
+            model="190E",
+            trim="Cosworth",
+            year=1991,
+            fuel="1",
+            body_type="3",
+            car_state="2",
+            reserved="2",
+            mileage=191500,
+            engine_size=2500,
+            mot_expiry="2023-12-01",
+            extras="Test 190E",
+            price=25000.00
+        )
+        v_2.save()
 
     @classmethod
     def tearDownClass(cls):
@@ -45,18 +62,37 @@ class TestView(APITestCase):
         super().tearDownClass()
 
     def test_get_list_of_vehicles(self):
-        vehicle = Vehicle.objects.get(slug="mercedes-a-class-a250-2013")
+        a_class = Vehicle.objects.get(slug="mercedes-a-class-a250-2013")
+        cosworth = Vehicle.objects.get(slug="mercedes-190e-cosworth-1991")
         response = self.client.get("/api/sales/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             json.loads(response.content),
             {
-                "count": 1,
+                "count": 2,
                 "next": None,
                 "previous": None,
                 "results": [
                     {
-                        "id": vehicle.id,
+                        "id": cosworth.id,
+                        "slug": "mercedes-190e-cosworth-1991",
+                        "make": "Mercedes",
+                        "model": "190E",
+                        "trim": "Cosworth",
+                        "year": 1991,
+                        "fuel": "Petrol",
+                        "body_type": "Saloon",
+                        "car_state": "Frontline",
+                        "reserved": "Reserved",
+                        "mileage": 191500,
+                        "engine_size": 2500,
+                        "mot_expiry": "2023-12-01",
+                        "extras": "Test 190E",
+                        "price": "25000.00",
+                        "images": []
+                    },
+                    {
+                        "id": a_class.id,
                         "slug": "mercedes-a-class-a250-2013",
                         "make": "Mercedes",
                         "model": "A Class",
@@ -122,6 +158,94 @@ class TestView(APITestCase):
     def test_check_car_state_not_found(self):
         response = self.client.get("/api/sales/state/99/")
         self.assertEqual(response.status_code, 404)
+
+    def test_intent_reserve_vehicle_not_found(self):
+        response = self.client.post('/api/sales/reserve/99/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_intent_reserve_vehicle_not_for_sale(self):
+        vehicle = Vehicle.objects.get(slug="mercedes-190e-cosworth-1991")
+        response = self.client.post(
+            f'/api/sales/reserve/{vehicle.id}/',
+            {
+                "reservation_name": "John Doe",
+                "reservation_email": "test@test.com",
+                "reservation_phone_number": "07123456789"
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                'error': "Vehicle is not for sale therefore can't be reserved."
+            }
+        )
+
+    def test_intent_reserve_vehicle_working_without_trade_in(self):
+        vehicle = Vehicle.objects.get(slug="mercedes-a-class-a250-2013")
+        response = self.client.post(
+            f'/api/sales/reserve/{vehicle.id}/',
+            {
+                "reservation_name": "John Doe",
+                "reservation_email": "test@test.com",
+                "reservation_phone_number": "07123456789"
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Reservations.objects.filter(
+            name="John Doe",
+            email="test@test.com",
+            phone_number="07123456789",
+            paid=False
+        ).exists())
+
+    def test_intent_reserve_vehicle_working_with_tradein(self):
+        Vehicle.objects.create(
+            slug="volvo-v70-r",
+            make="Volvo",
+            model="V70",
+            trim="R",
+            year=1997,
+            fuel="1",
+            body_type="4",
+            car_state="2",
+            reserved="1",
+            mileage=181000,
+            engine_size=1998,
+            mot_expiry="2023-05-01",
+            extras="Test V70",
+            price=10000.00
+        ).save()
+        vehicle = Vehicle.objects.get(slug="volvo-v70-r-1997")
+        response = self.client.post(
+            f'/api/sales/reserve/{vehicle.id}/',
+            {
+                "reservation_name": "Jane Doe",
+                "reservation_email": "test2@test.com",
+                "reservation_phone_number": "07123456781",
+                "tradein_make": "Ford",
+                "tradein_model": "Focus",
+                "tradein_trim": "Zetec",
+                "tradein_year": 2014,
+                "tradein_mileage": 28614,
+                "tradein_comments": "Good car, body work in great shape.",
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Reservations.objects.filter(
+            name="Jane Doe",
+            email="test2@test.com",
+            phone_number="07123456781",
+            paid=False
+        ).exists())
+        self.assertTrue(TradeIn.objects.filter(
+            make="Ford",
+            model="Focus",
+            trim="Zetec",
+            year=2014,
+            mileage=28614,
+            comments="Good car, body work in great shape."
+        ).exists())
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestSalesModels(APITestCase):
