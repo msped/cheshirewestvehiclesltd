@@ -145,7 +145,7 @@ class TestView(APITestCase):
 
     def test_check_car_state(self):
         vehicle = Vehicle.objects.get(slug="mercedes-a-class-a250-2013")
-        response = self.client.get(f"/api/sales/state/{vehicle.id}/")
+        response = self.client.get("/api/sales/state/mercedes-a-class-a250-2013/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             json.loads(response.content),
@@ -156,7 +156,7 @@ class TestView(APITestCase):
         )
 
     def test_check_car_state_not_found(self):
-        response = self.client.get("/api/sales/state/99/")
+        response = self.client.get("/api/sales/state/mercedes-a-class-a45-2022/")
         self.assertEqual(response.status_code, 404)
 
     def test_intent_reserve_vehicle_not_found(self):
