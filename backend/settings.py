@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'accounts',
+    'business_admin',
     'sales',
     'gallery',
     'rest_framework_simplejwt.token_blacklist',
