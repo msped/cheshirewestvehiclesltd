@@ -1,0 +1,178 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheshire West Vehicles Invoice</title>
+    <style>
+        @page {
+            margin: 2.5cm;
+            page-break-after: always;
+        }
+
+        * {
+            font-family: 'SG', sans-serif;
+        }
+
+        h1 {
+            font-size: 24pt;
+        }
+
+        .text-center {
+            text-align: 'center';
+        }
+
+        #parts-table {
+            border-collapse: collapse;
+            border: 1px solid rgb(65, 65, 65);
+        }
+
+        table#parts-table tbody tr,
+        table#parts-table thead tr {
+            border-bottom: 1px solid rgb(65, 65, 65);
+        }
+
+        table#parts-table thead tr th,
+        table#parts-table tbody tr td {
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main">
+            <div class="company-info">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width:75%; vertical-align: top;">
+                            <h1>Cheshire West Vehicles</h1>
+                        </td>
+                        <td style="text-align: right; padding: 0; float: right;">
+                            CWN Park Farm <br>
+                            Clive Green Lane <br>
+                            Middlewich <br>
+                            Cheshire <br>
+                            CW10 0NA <br>
+                            <p>info@cheshirewestvehicles.co.uk</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="customer-info" style="margin: 2.5rem 0 ;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width:70%;">
+                            {{ data.customer.name}}<br>
+                            {% if data.customer.address_line_1 %}{{data.customer.address_line_1}}<br>{% endif %}
+                            {% if data.customer.address_line_2 %}{{data.customer.address_line_2}} <br>{% endif %}
+                            {% if data.customer.town_city %}{{data.customer.town_city}}<br>{% endif %}
+                            {% if data.customer.county %}{{data.customer.county}}<br>{% endif %}
+                            {% if data.customer.postcode %}{{data.customer.postcode}}<br>{% endif %}
+                            <div stlye="margin: 1rem 0;">
+                                Phone: {{data.customer.phone_number}}<br>
+                                E-mail: {{data.customer.email}}
+                            </div>
+                        </td>
+                        <td style="width:30%; vertical-align: top;">
+                            <div style="float: right">
+                                {% if data.invoice_number %}<p style="text-align: right;">{{data.invoice_number}}</p>{% endif %}
+                                <p style="text-align: right;">Date: {% now "jS F Y " %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="vehicle-info">
+                <h3 style="text-align: center;">Vehicle Details</h3>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Make</th>
+                            <th>Model</th>
+                            <th>Year</th>
+                            <th>Mileage</th>
+                            <th>VRM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <td>
+                            <p style="text-align: center;">{{ data.vehicle.make }}</p>
+                        </td>
+                        <td>
+                            <p style="text-align: center;">{{ data.vehicle.model }}</p>
+                        </td>
+                        <td>
+                            <p style="text-align: center;">{{ data.vehicle.year }}</p>
+                        </td>
+                        <td>
+                            <p style="text-align: center;">{{ data.vehicle.mileage }}</p>
+                        </td>
+                        <td>
+                            <p style="text-align: center;">{{ data.vehicle.vrm }}</p>
+                        </td>
+                    </tbody>
+                </table>
+            </div>
+            <div class="service-work">
+                <h3></h3>
+                <div style="margin: 1rem auto; padding: 0 2.5rem;">
+                    <table style="width: 100%;" id="parts-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th style="width: 75px; text-align: center;">Qty</th>
+                                <th style="width: 150px; text-align: center;">Unit Price</th>
+                                <th style="width: 150px; text-align: center;">Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in data.parts.items %}
+                            <tr>
+                                <td>
+                                    <p>{{value.description}}</p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{value.qty}}</p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{value.unit}}</p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{value.line}}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if data.labour.total != '0' %}
+                            <tr>
+                                <td>
+                                    <p><strong>Labour</strong></p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{data.labour.qty}}</p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{data.labour.unit}}</p>
+                                </td>
+                                <td>
+                                    <p style="text-align: center;">{{data.labour.qty}}</p>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div style="text-align: right;">
+                        <p style="font-size: 13pt;"><strong>Total £<span>{{data.total}}</span></strong></p>
+                    </div>
+                </div>
+            </div>
+            <footer>
+                <div style="text-align: center;">
+                    <p>If there are issues with this invoice please contact us as soon as possible.</p>
+                    <p>https://www.cheshirewestvehicles.co.uk/</p>
+                </div>
+            </footer>
+        </div>
+</body>
+
+</html>
