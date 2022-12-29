@@ -182,3 +182,5 @@ DJOSER = {
     'TOKEN_MODEL': None,
     'SERIALIZERS': {},
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
