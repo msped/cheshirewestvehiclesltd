@@ -64,7 +64,7 @@ class Vehicle(models.Model):
 
 class VehicleImages(models.Model):
     """Images relating to a vehicle"""
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="vehicle_images")
 
     def __str__(self):
