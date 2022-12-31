@@ -16,20 +16,23 @@ stripe.api_key = os.environ.get('STRIPE_SECRET')
 
 class ListVehicles(ListAPIView):
     serializer_class = VehicleSerializer
-    queryset = Vehicle.objects.filter(Q(reserved='1') | Q(reserved='2'))
+    queryset = Vehicle.objects.filter(
+        Q(reserved='1') | Q(reserved='2'),
+        published=True
+    )
     paginate_by = 10
 
 class VehicleDetail(RetrieveAPIView):
     serializer_class = VehicleSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
-    queryset = Vehicle.objects.all()
+    queryset = Vehicle.objects.filter(published=True)
 
 class VehicleState(RetrieveAPIView):
     serializer_class = VehicleStateSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
-    queryset = Vehicle.objects.filter(reserved="1")
+    queryset = Vehicle.objects.filter(reserved="1", published=True)
 
 @csrf_exempt
 def stripe_webhook(request):
