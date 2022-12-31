@@ -1,37 +1,156 @@
+import shutil
+import tempfile
+from PIL import Image
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from django.test import override_settings
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-# Create your tests here.
+from sales.models import VehicleImages, Vehicle
 
+# Create your tests here.
+MEDIA_ROOT = tempfile.mkdtemp()
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestBusinessAdmin(APITestCase):
 
+    def setUp(self):
+        user = get_user_model()
+        user.objects.create(
+            first_name= 'Harold',
+            last_name= 'Finch',
+            username= 'admin',
+            password=make_password('TestP455word!'),
+            is_staff=True
+        ).save()
+
+    def temporary_image(self):
+        image = Image.new('RGB', (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image.save(tmp_file, 'jpeg')
+        tmp_file.seek(0)
+        return tmp_file
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def test_sending_invoice_by_email(self):
-        data = {
-            "name": "Elizbath Windsor",
-            "phone_number": "07123456789",
-            "email": "test@example.com",
-            "address_line_1": "1 The Mall",
-            "address_line_2": "",
-            "town_city": "Westminter",
-            "county": "London",
-            "postcode": "SW1A 1AA",
-            "make": "Land Rover",
-            "model": "Defender",
-            "year": "2021",
-            "mileage": 250,
-            "vrm": "B16 LIZ",
-            "labour-qty": 10,
-            "labour-unit": 100,
-            "labour-total": 1000,
-            "invoice-total": 1500,
-            "comments": "Testing sending of pdf email",
-            "description-1": "Steering rack",
-            "qty-1": 1,
-            "unit-1": 500,
-            "line-1": 500
-        }
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
         response = self.client.post(
             '/api/admin/invoice/',
-            data=data
+            {
+                "name": "Elizbath Windsor",
+                "phone_number": "07123456789",
+                "email": "test@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA",
+                "make": "Land Rover",
+                "model": "Defender",
+                "year": "2021",
+                "mileage": 250,
+                "vrm": "B16 LIZ",
+                "labour-qty": 10,
+                "labour-unit": 100,
+                "labour-total": 1000,
+                "invoice-total": 1500,
+                "comments": "Testing sending of pdf email",
+                "description-1": "Steering rack",
+                "qty-1": 1,
+                "unit-1": 500,
+                "line-1": 500
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_create_vehicle_no_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/vehicle/',
+            {
+                "make": "Ford",
+                "model": "Mustang",
+                "trim": "GT",
+                "year": 2019,
+                "fuel": "1",
+                "body_type": "1",
+                "car_state": "2",
+                "reserved": "1",
+                "mileage": 42500,
+                "engine_size": 4996,
+                "mot_expiry": "2023-06-21",
+                "extras": "Test Mustang GT",
+                "price": "32500.00",
+                "uploaded_images": []
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_vehicle_with_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/vehicle/',
+            {
+                "make": "BMW",
+                "model": "5 Series",
+                "trim": "M",
+                "year": 2018,
+                "fuel": "1",
+                "body_type": "4",
+                "car_state": "2",
+                "reserved": "1",
+                "mileage": 28614,
+                "engine_size": 2998,
+                "mot_expiry": "2023-04-11",
+                "extras": "Test M5",
+                "price": "32500.00",
+                "published": True,
+                'uploaded_images': [
+                    self.temporary_image(),
+                    self.temporary_image()
+                ]
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+        vehicle = Vehicle.objects.get(
+            make="BMW",
+            model="5 Series",
+            trim="M",
+            year=2018,
+            mileage=28614
+        )
+        self.assertEqual(VehicleImages.objects.filter(
+            vehicle_id=vehicle.id
+        ).count(), 2)
