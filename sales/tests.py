@@ -91,7 +91,8 @@ class TestView(APITestCase):
                         "mot_expiry": "2023-12-01",
                         "extras": "Test 190E",
                         "price": "25000.00",
-                        "images": []
+                        "images": [],
+                        "published": True
                     },
                     {
                         "id": a_class.id,
@@ -109,7 +110,8 @@ class TestView(APITestCase):
                         "mot_expiry": "2022-09-01",
                         "extras": "Test",
                         "price": "16110.00",
-                        "images": []
+                        "images": [],
+                        "published": True
                     }
                 ]
             }
@@ -137,7 +139,8 @@ class TestView(APITestCase):
                 "mot_expiry": "2022-09-01",
                 "extras": "Test",
                 "price": "16110.00",
-                "images": []
+                "images": [],
+                "published": True
             }
         )
 
