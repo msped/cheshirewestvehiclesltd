@@ -27,7 +27,6 @@ class GalleryImageSerializer(serializers.ModelSerializer):
             'id',
             'item',
             'image',
-            'order_of_image',
         ]
 
 class GallerySerializer(serializers.ModelSerializer):
