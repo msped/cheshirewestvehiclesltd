@@ -22,7 +22,7 @@ class CreateInvoice(APIView):
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CreateListVehicle(ListCreateAPIView):
-    queryset = queryset = Vehicle.objects.all()
+    queryset = Vehicle.objects.all()
     pagination_by = 10
     serializer_class = VehicleSerializer
     permission_classes = [IsAdminUser]
