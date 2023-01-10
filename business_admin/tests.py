@@ -8,6 +8,7 @@ from django.test import override_settings
 from rest_framework.test import APITestCase
 from rest_framework import status
 
+from gallery.models import GalleryItem, GalleryImage
 from sales.models import VehicleImages, Vehicle
 
 # Create your tests here.
@@ -153,4 +154,73 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(VehicleImages.objects.filter(
             vehicle_id=vehicle.id
+        ).count(), 2)
+
+    def test_create_gallery_no_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/vehicle/',
+            {
+                "make": "Ford",
+                "model": "Mustang",
+                "trim": "GT",
+                "year": 2019,
+                "fuel": "1",
+                "body_type": "1",
+                "car_state": "2",
+                "reserved": "1",
+                "mileage": 42500,
+                "engine_size": 4996,
+                "mot_expiry": "2023-06-21",
+                "extras": "Test Mustang GT",
+                "price": "32500.00",
+                "uploaded_images": []
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_gallery_with_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/gallery/',
+            {
+                "make": "Nissan",
+                "model": "Skyline",
+                "trim": "GTR V-spec",
+                "year": 2001,
+                "description": "Godzilla",
+                "published": True,
+                "uploaded_images": [
+                    self.temporary_image(),
+                    self.temporary_image()
+                ]
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+        gallery = GalleryItem.objects.get(
+            make="Nissan",
+            model="Skyline",
+            trim="GTR V-spec",
+            year=2001
+        )
+        self.assertEqual(GalleryImage.objects.filter(
+            item_id=gallery.id
         ).count(), 2)
