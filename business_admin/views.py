@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from gallery.models import GalleryItem
+from gallery.serializers import GallerySerializer
 from sales.models import Vehicle
 from sales.serializers import (
     VehicleSerializer
@@ -25,4 +27,10 @@ class CreateListVehicle(ListCreateAPIView):
     queryset = Vehicle.objects.all()
     pagination_by = 10
     serializer_class = VehicleSerializer
+    permission_classes = [IsAdminUser]
+
+class CreateListGalleryItem(ListCreateAPIView):
+    queryset = GalleryItem.objects.all()
+    pagination_class = 10
+    serializer_class = GallerySerializer
     permission_classes = [IsAdminUser]
