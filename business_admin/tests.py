@@ -39,7 +39,7 @@ class TestBusinessAdmin(APITestCase):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def test_sending_invoice_by_email(self):
+    def sending_invoice_by_email(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -78,7 +78,7 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_create_vehicle_no_images(self):
+    def create_vehicle_no_images(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -93,7 +93,7 @@ class TestBusinessAdmin(APITestCase):
                 "make": "Ford",
                 "model": "Mustang",
                 "trim": "GT",
-                "year": 2019,
+                "year": 2015,
                 "fuel": "1",
                 "body_type": "1",
                 "car_state": "2",
@@ -110,7 +110,7 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, 201)
 
-    def test_create_vehicle_with_images(self):
+    def create_vehicle_with_images(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -156,7 +156,22 @@ class TestBusinessAdmin(APITestCase):
             vehicle_id=vehicle.id
         ).count(), 2)
 
-    def test_create_gallery_no_images(self):
+    def get_vehicle(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/vehicle/bmw-5-series-m-2018/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def create_gallery_no_images(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -166,21 +181,14 @@ class TestBusinessAdmin(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.post(
-            '/api/admin/vehicle/',
+            '/api/admin/gallery/',
             {
                 "make": "Ford",
-                "model": "Mustang",
-                "trim": "GT",
+                "model": "Fiesta",
+                "trim": "ST",
                 "year": 2019,
-                "fuel": "1",
-                "body_type": "1",
-                "car_state": "2",
-                "reserved": "1",
-                "mileage": 42500,
-                "engine_size": 4996,
-                "mot_expiry": "2023-06-21",
-                "extras": "Test Mustang GT",
-                "price": "32500.00",
+                "description": "Test description for Fiesta",
+                "published": True,
                 "uploaded_images": []
             },
             format="multipart",
@@ -188,7 +196,7 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, 201)
 
-    def test_create_gallery_with_images(self):
+    def create_gallery_with_images(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -224,3 +232,11 @@ class TestBusinessAdmin(APITestCase):
         self.assertEqual(GalleryImage.objects.filter(
             item_id=gallery.id
         ).count(), 2)
+
+    def test_in_order(self):
+        self.sending_invoice_by_email()
+        self.create_vehicle_no_images()
+        self.create_vehicle_with_images()
+        self.get_vehicle()
+        self.create_gallery_no_images()
+        self.create_gallery_with_images()
