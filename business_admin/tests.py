@@ -233,6 +233,21 @@ class TestBusinessAdmin(APITestCase):
             item_id=gallery.id
         ).count(), 2)
 
+    def get_gallery(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/gallery/ford-fiesta-st-2019/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
     def delete_vehicle(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -248,6 +263,21 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, 204)
 
+    def delete_gallery(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.delete(
+            '/api/admin/gallery/ford-fiesta-st-2019/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+
     def test_in_order(self):
         self.sending_invoice_by_email()
         self.create_vehicle_no_images()
@@ -255,4 +285,6 @@ class TestBusinessAdmin(APITestCase):
         self.get_vehicle()
         self.create_gallery_no_images()
         self.create_gallery_with_images()
+        self.get_gallery()
         self.delete_vehicle()
+        self.delete_gallery()
