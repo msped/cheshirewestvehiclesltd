@@ -40,3 +40,9 @@ class GetUpdateDeleteVehicle(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Vehicle.objects.all()
     lookup_field = "slug"
+
+class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
+    serializer_class = GallerySerializer
+    permission_classes = [IsAdminUser]
+    queryset = GalleryItem.objects.all()
+    lookup_field = "slug"
