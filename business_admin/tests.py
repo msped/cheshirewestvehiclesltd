@@ -233,6 +233,21 @@ class TestBusinessAdmin(APITestCase):
             item_id=gallery.id
         ).count(), 2)
 
+    def delete_vehicle(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.delete(
+            '/api/admin/vehicle/bmw-5-series-m-2018/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+
     def test_in_order(self):
         self.sending_invoice_by_email()
         self.create_vehicle_no_images()
@@ -240,3 +255,4 @@ class TestBusinessAdmin(APITestCase):
         self.get_vehicle()
         self.create_gallery_no_images()
         self.create_gallery_with_images()
+        self.delete_vehicle()
