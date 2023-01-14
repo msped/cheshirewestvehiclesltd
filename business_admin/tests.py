@@ -15,7 +15,7 @@ from sales.models import VehicleImages, Vehicle
 MEDIA_ROOT = tempfile.mkdtemp()
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
-class TestBusinessAdmin(APITestCase):
+class TestBusinessAdminInvoice(APITestCase):
 
     def setUp(self):
         user = get_user_model()
@@ -39,7 +39,7 @@ class TestBusinessAdmin(APITestCase):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def sending_invoice_by_email(self):
+    def test_sending_invoice_by_email(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -77,6 +77,31 @@ class TestBusinessAdmin(APITestCase):
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
+class TestBusinessAdminVehicle(APITestCase):
+
+    def setUp(self):
+        user = get_user_model()
+        user.objects.create(
+            first_name= 'Harold',
+            last_name= 'Finch',
+            username= 'admin',
+            password=make_password('TestP455word!'),
+            is_staff=True
+        ).save()
+
+    def temporary_image(self):
+        image = Image.new('RGB', (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image.save(tmp_file, 'jpeg')
+        tmp_file.seek(0)
+        return tmp_file
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def create_vehicle_no_images(self):
         access_request = self.client.post(
@@ -171,6 +196,53 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def delete_vehicle(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.delete(
+            '/api/admin/vehicle/bmw-5-series-m-2018/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+
+
+    def test_in_order(self):
+        self.create_vehicle_no_images()
+        self.create_vehicle_with_images()
+        self.get_vehicle()
+        self.delete_vehicle()
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
+class TestBusinessAdminGallery(APITestCase):
+
+    def setUp(self):
+        user = get_user_model()
+        user.objects.create(
+            first_name= 'Harold',
+            last_name= 'Finch',
+            username= 'admin',
+            password=make_password('TestP455word!'),
+            is_staff=True
+        ).save()
+
+    def temporary_image(self):
+        image = Image.new('RGB', (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image.save(tmp_file, 'jpeg')
+        tmp_file.seek(0)
+        return tmp_file
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def create_gallery_no_images(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -248,7 +320,7 @@ class TestBusinessAdmin(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def delete_vehicle(self):
+    def delete_gallery_image(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -257,11 +329,17 @@ class TestBusinessAdmin(APITestCase):
             }
         )
         access_token = access_request.data['access']
+        image = GalleryImage.objects.filter(
+            item__slug="nissan-skyline-gtr-v-spec-2001"
+        ).first()
         response = self.client.delete(
-            '/api/admin/vehicle/bmw-5-series-m-2018/',
+            f'/api/admin/gallery/image/{image.id}/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 204)
+        self.assertEqual(GalleryImage.objects.filter(
+            item_id=image.item.id
+        ).count(), 1)
 
     def delete_gallery(self):
         access_request = self.client.post(
@@ -279,12 +357,8 @@ class TestBusinessAdmin(APITestCase):
         self.assertEqual(response.status_code, 204)
 
     def test_in_order(self):
-        self.sending_invoice_by_email()
-        self.create_vehicle_no_images()
-        self.create_vehicle_with_images()
-        self.get_vehicle()
         self.create_gallery_no_images()
         self.create_gallery_with_images()
         self.get_gallery()
-        self.delete_vehicle()
+        self.delete_gallery_image()
         self.delete_gallery()
