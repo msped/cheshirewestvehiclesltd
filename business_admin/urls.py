@@ -5,7 +5,8 @@ from .views import (
     CreateListVehicle,
     CreateListGalleryItem,
     GetUpdateDeleteVehicle,
-    GetUpdateDeleteGallery
+    GetUpdateDeleteGallery,
+    DeleteGalleryImage
 )
 
 urlpatterns = [
@@ -14,4 +15,9 @@ urlpatterns = [
     path('vehicle/<slug:slug>/', GetUpdateDeleteVehicle.as_view(), name="vehicle_options"),
     path('gallery/', CreateListGalleryItem.as_view(), name="create_gallery_item"),
     path('gallery/<slug:slug>/', GetUpdateDeleteGallery.as_view(), name="gallery_options"),
+    path(
+        'gallery/image/<pk>/',
+        DeleteGalleryImage.as_view(),
+        name="delete_gallery_image"
+    ),
 ]
