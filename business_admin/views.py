@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,3 +34,9 @@ class CreateListGalleryItem(ListCreateAPIView):
     pagination_class = 10
     serializer_class = GallerySerializer
     permission_classes = [IsAdminUser]
+
+class GetUpdateDeleteVehicle(RetrieveUpdateDestroyAPIView):
+    serializer_class = VehicleSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Vehicle.objects.all()
+    lookup_field = "slug"
