@@ -1,11 +1,15 @@
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    DestroyAPIView
+)
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from gallery.models import GalleryItem
-from gallery.serializers import GallerySerializer
+from gallery.models import GalleryItem, GalleryImage
+from gallery.serializers import GallerySerializer, GalleryImageSerializer
 from sales.models import Vehicle
 from sales.serializers import (
     VehicleSerializer
@@ -46,3 +50,8 @@ class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = GalleryItem.objects.all()
     lookup_field = "slug"
+
+class DeleteGalleryImage(DestroyAPIView):
+    serializer_class = GalleryImageSerializer
+    permission_classes = [IsAdminUser]
+    queryset = GalleryImage.objects.all()
