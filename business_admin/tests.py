@@ -196,6 +196,83 @@ class TestBusinessAdminVehicle(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def delete_vehicle_image(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        image = VehicleImages.objects.filter(
+            vehicle__slug="bmw-5-series-m-2018"
+        ).first()
+        response = self.client.delete(
+            f'/api/admin/vehicle/image/{image.id}/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(VehicleImages.objects.filter(
+            vehicle_id=image.vehicle.id
+        ).count(), 1)
+
+    def create_vehicle_image_item_doesnt_exist(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/vehicle/image/99/',
+            {
+                'image': self.temporary_image()
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def create_vehicle_image_no_image(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        item = Vehicle.objects.get(slug="bmw-5-series-m-2018")
+        response = self.client.post(
+            f'/api/admin/vehicle/image/{item.id}/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def create_vehicle_image_works(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        item = Vehicle.objects.get(slug="bmw-5-series-m-2018")
+        response = self.client.post(
+            f'/api/admin/vehicle/image/{item.id}/',
+            {
+                'image': self.temporary_image()
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(VehicleImages.objects.filter(
+            vehicle_id=item.id
+        ).count(), 2)
+
     def delete_vehicle(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -216,6 +293,10 @@ class TestBusinessAdminVehicle(APITestCase):
         self.create_vehicle_no_images()
         self.create_vehicle_with_images()
         self.get_vehicle()
+        self.delete_vehicle_image()
+        self.create_vehicle_image_item_doesnt_exist()
+        self.create_vehicle_image_no_image()
+        self.create_vehicle_image_works()
         self.delete_vehicle()
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
