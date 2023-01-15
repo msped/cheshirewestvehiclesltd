@@ -75,6 +75,16 @@ class VehicleSerializer(serializers.ModelSerializer):
             vehicle = Vehicle.objects.create(**validated_data)
         return vehicle
 
+    def update(self, instance, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            for image in uploaded_images:
+                VehicleImages.objects.create(
+                    vehicle_id=instance.id,
+                    image=image
+                )
+        return instance
+
 class VehicleStateSerializer(serializers.ModelSerializer):
     reserved = serializers.CharField(
         source="get_reserved_display"
