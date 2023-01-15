@@ -1,3 +1,4 @@
+import json
 import shutil
 import tempfile
 from PIL import Image
@@ -424,6 +425,43 @@ class TestBusinessAdminGallery(APITestCase):
             item_id=gallery.id
         ).count(), 4)
 
+    def update_gallery_without_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        gallery = GalleryItem.objects.get(
+            make="Nissan",
+            model="Skyline",
+            trim="GTR V-spec",
+            year=2001
+        )
+        response = self.client.patch(
+            f'/api/admin/gallery/{gallery.slug}/',
+            {
+                "make": "Nissan",
+                "model": "Skyline",
+                "trim": "GTR V-spec",
+                "year": 2000,
+                "description": "A proper description",
+                "published": True,
+                "uploaded_images": []
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(GalleryImage.objects.filter(
+            item_id=gallery.id
+        ).count(), 4)
+        json_response = json.loads(response.content)
+        self.assertEqual(json_response['year'], 2000)
+        self.assertEqual(json_response['description'], 'A proper description')
+
     def delete_gallery_image(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -434,7 +472,7 @@ class TestBusinessAdminGallery(APITestCase):
         )
         access_token = access_request.data['access']
         image = GalleryImage.objects.filter(
-            item__slug="nissan-skyline-gtr-v-spec-2001"
+            item__slug="nissan-skyline-gtr-v-spec-2000"
         ).first()
         response = self.client.delete(
             f'/api/admin/gallery/image/{image.id}/',
@@ -465,5 +503,6 @@ class TestBusinessAdminGallery(APITestCase):
         self.create_gallery_with_images()
         self.get_gallery()
         self.update_gallery_with_images()
+        self.update_gallery_without_images()
         self.delete_gallery_image()
         self.delete_gallery()
