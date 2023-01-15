@@ -75,3 +75,13 @@ class GallerySerializer(serializers.ModelSerializer):
         else:
             gallery = GalleryItem.objects.create(**validated_data)
         return gallery
+
+    def update(self, instance, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            for image in uploaded_images:
+                GalleryImage.objects.create(
+                    item_id=instance.id,
+                    image=image
+                )
+        return instance
