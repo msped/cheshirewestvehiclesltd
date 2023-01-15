@@ -1,8 +1,8 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
-    DestroyAPIView
 )
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -51,7 +51,18 @@ class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     queryset = GalleryItem.objects.all()
     lookup_field = "slug"
 
-class DeleteGalleryImage(DestroyAPIView):
-    serializer_class = GalleryImageSerializer
-    permission_classes = [IsAdminUser]
-    queryset = GalleryImage.objects.all()
+class CreateDeleteGalleryImage(APIView):
+
+    def post(self, request, object_id):
+        item = get_object_or_404(GalleryItem, id=object_id)
+        request.data['item'] = item.id
+        serializer = GalleryImageSerializer(data=request.data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, object_id):
+        image = get_object_or_404(GalleryImage, id=object_id)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
