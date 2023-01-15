@@ -10,9 +10,10 @@ from rest_framework.views import APIView
 
 from gallery.models import GalleryItem, GalleryImage
 from gallery.serializers import GallerySerializer, GalleryImageSerializer
-from sales.models import Vehicle
+from sales.models import Vehicle, VehicleImages
 from sales.serializers import (
-    VehicleSerializer
+    VehicleSerializer,
+    VehicleImagesSerializer
 )
 from .utils import invoice_handler
 
@@ -50,6 +51,22 @@ class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = GalleryItem.objects.all()
     lookup_field = "slug"
+
+class CreateDeleteVehicleImage(APIView):
+
+    def post(self, request, object_id):
+        vehicle = get_object_or_404(Vehicle, id=object_id)
+        request.data['vehicle'] = vehicle.id
+        serializer = VehicleImagesSerializer(data=request.data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, object_id):
+        image = get_object_or_404(VehicleImages, id=object_id)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CreateDeleteGalleryImage(APIView):
 
