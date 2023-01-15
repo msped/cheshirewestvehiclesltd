@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import (
     DestroyAPIView,
@@ -53,21 +52,11 @@ class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     queryset = GalleryItem.objects.all()
     lookup_field = "slug"
 
-class CreateDeleteVehicleImage(APIView):
-
-    def post(self, request, object_id):
-        vehicle = get_object_or_404(Vehicle, id=object_id)
-        request.data['vehicle'] = vehicle.id
-        serializer = VehicleImagesSerializer(data=request.data, many=False)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, object_id):
-        image = get_object_or_404(VehicleImages, id=object_id)
-        image.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class DeleteVehicleImage(DestroyAPIView):
+    serializer_class = VehicleImagesSerializer
+    permission_classes = [IsAdminUser]
+    queryset = VehicleImages.objects.all()
+    lookup_url_kwarg = 'object_id'
 
 class DeleteGalleryImage(DestroyAPIView):
     serializer_class = GalleryImageSerializer
