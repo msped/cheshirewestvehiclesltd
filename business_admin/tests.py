@@ -341,6 +341,62 @@ class TestBusinessAdminGallery(APITestCase):
             item_id=image.item.id
         ).count(), 1)
 
+    def create_gallery_image_item_doesnt_exist(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.post(
+            '/api/admin/gallery/image/99/',
+            {
+                'image': self.temporary_image()
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def create_gallery_image_no_image(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        item = GalleryItem.objects.get(slug="nissan-skyline-gtr-v-spec-2001")
+        response = self.client.post(
+            f'/api/admin/gallery/image/{item.id}/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def create_gallery_image_works(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        item = GalleryItem.objects.get(slug="nissan-skyline-gtr-v-spec-2001")
+        response = self.client.post(
+            f'/api/admin/gallery/image/{item.id}/',
+            {
+                'image': self.temporary_image()
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(GalleryImage.objects.filter(
+            item_id=item.id
+        ).count(), 2)
+
     def delete_gallery(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -361,4 +417,7 @@ class TestBusinessAdminGallery(APITestCase):
         self.create_gallery_with_images()
         self.get_gallery()
         self.delete_gallery_image()
+        self.create_gallery_image_item_doesnt_exist()
+        self.create_gallery_image_no_image()
+        self.create_gallery_image_works()
         self.delete_gallery()
