@@ -84,4 +84,5 @@ class GallerySerializer(serializers.ModelSerializer):
                     item_id=instance.id,
                     image=image
                 )
+        super().update(instance, validated_data)
         return instance
