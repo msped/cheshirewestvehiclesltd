@@ -83,6 +83,7 @@ class VehicleSerializer(serializers.ModelSerializer):
                     vehicle_id=instance.id,
                     image=image
                 )
+        super().update(instance, validated_data)
         return instance
 
 class VehicleStateSerializer(serializers.ModelSerializer):
