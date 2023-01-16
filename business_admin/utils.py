@@ -22,7 +22,8 @@ def get_items(request):
 def create_data_structure(request):
     data = {
         "customer": {
-            "name": request["name"],
+            "first_name": request["first_name"],
+            "last_name": request["last_name"],
             "phone_number": request["phone_number"],
             "email": request["email"],
             "address_line_1": request["address_line_1"],

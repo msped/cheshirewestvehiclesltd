@@ -63,7 +63,7 @@
                 <table style="width: 100%;">
                     <tr>
                         <td style="width:70%;">
-                            {{ data.customer.name}}<br>
+                            {{ data.customer.first_name}} {{ data.customer.last_name}}<br>
                             {% if data.customer.address_line_1 %}{{data.customer.address_line_1}}<br>{% endif %}
                             {% if data.customer.address_line_2 %}{{data.customer.address_line_2}} <br>{% endif %}
                             {% if data.customer.town_city %}{{data.customer.town_city}}<br>{% endif %}

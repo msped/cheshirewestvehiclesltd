@@ -52,7 +52,8 @@ class TestBusinessAdminInvoice(APITestCase):
         response = self.client.post(
             '/api/admin/invoice/',
             {
-                "name": "Elizbath Windsor",
+                "first_name": "Elizbath",
+                "last_name": "Windsor",
                 "phone_number": "07123456789",
                 "email": "test@example.com",
                 "address_line_1": "1 The Mall",
