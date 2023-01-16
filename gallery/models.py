@@ -27,13 +27,12 @@ class GalleryImage(models.Model):
     """Image for galleryItem"""
     item = models.ForeignKey(GalleryItem, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='gallery')
-    order_of_images = models.IntegerField()
 
     class Meta:
-        ordering = ['order_of_images']
+        ordering = ['id']
 
     def __str__(self):
         return (
-            f'Order: {self.order_of_images} - ({self.item.id}) {self.item.make}'
+            f'({self.item.id}) {self.item.make}'
             f' {self.item.model} {self.item.trim}'
         )

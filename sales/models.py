@@ -50,6 +50,7 @@ class Vehicle(models.Model):
     mot_expiry = models.DateField()
     extras = models.TextField()
     price = models.DecimalField(max_digits=7, decimal_places=2)
+    published = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-id"]
@@ -63,9 +64,8 @@ class Vehicle(models.Model):
 
 class VehicleImages(models.Model):
     """Images relating to a vehicle"""
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="vehicle_images")
-    order_of_images = models.IntegerField()
 
     def __str__(self):
         return f"{self.vehicle.id} - {self.id}"

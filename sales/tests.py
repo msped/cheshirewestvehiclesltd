@@ -35,7 +35,8 @@ class TestView(APITestCase):
             engine_size=1991,
             mot_expiry="2022-09-01",
             extras="Test",
-            price=16110.00
+            price=16110.00,
+            published=True
         )
         v_1.save()
         v_2 = Vehicle.objects.create(
@@ -52,7 +53,8 @@ class TestView(APITestCase):
             engine_size=2500,
             mot_expiry="2023-12-01",
             extras="Test 190E",
-            price=25000.00
+            price=25000.00,
+            published=True
         )
         v_2.save()
 
@@ -89,7 +91,8 @@ class TestView(APITestCase):
                         "mot_expiry": "2023-12-01",
                         "extras": "Test 190E",
                         "price": "25000.00",
-                        "images": []
+                        "images": [],
+                        "published": True
                     },
                     {
                         "id": a_class.id,
@@ -107,7 +110,8 @@ class TestView(APITestCase):
                         "mot_expiry": "2022-09-01",
                         "extras": "Test",
                         "price": "16110.00",
-                        "images": []
+                        "images": [],
+                        "published": True
                     }
                 ]
             }
@@ -135,7 +139,8 @@ class TestView(APITestCase):
                 "mot_expiry": "2022-09-01",
                 "extras": "Test",
                 "price": "16110.00",
-                "images": []
+                "images": [],
+                "published": True
             }
         )
 
@@ -214,7 +219,8 @@ class TestView(APITestCase):
             engine_size=1998,
             mot_expiry="2023-05-01",
             extras="Test V70",
-            price=10000.00
+            price=10000.00,
+            published=True
         ).save()
         vehicle = Vehicle.objects.get(slug="volvo-v70-r-1997")
         response = self.client.post(
@@ -269,7 +275,8 @@ class TestSalesModels(APITestCase):
             engine_size=2994,
             mot_expiry='1997-03-10',
             extras='A bunch of extras on this car.',
-            price=11095.00
+            price=11095.00,
+            published=True
         )
         vehicle = Vehicle.objects.get(make='Mercedes', mileage=172000)
         self.assertEqual(
@@ -281,12 +288,10 @@ class TestSalesModels(APITestCase):
         vehicle = Vehicle.objects.get(make='Mercedes', mileage=172000)
         VehicleImages.objects.create(
             vehicle=vehicle,
-            image=SimpleUploadedFile('test.png', b'testimageofavehicle'),
-            order_of_images=1
+            image=SimpleUploadedFile('test.png', b'testimageofavehicle')
         ).save()
         vehicle_image = VehicleImages.objects.get(
-            vehicle_id=vehicle.id,
-            order_of_images=1
+            vehicle_id=vehicle.id
         )
         self.assertEqual(
             str(vehicle_image),

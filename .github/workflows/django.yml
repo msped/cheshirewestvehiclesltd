@@ -49,5 +49,8 @@ jobs:
         STRIPE_PUBLISHABLE: ${{ secrets.STRIPE_PUBLISHABLE }}
         STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
         STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       run: |
         coverage run manage.py test && coverage report --fail-under=90

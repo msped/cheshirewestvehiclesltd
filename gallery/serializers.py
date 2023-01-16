@@ -27,13 +27,21 @@ class GalleryImageSerializer(serializers.ModelSerializer):
             'id',
             'item',
             'image',
-            'order_of_image',
         ]
 
 class GallerySerializer(serializers.ModelSerializer):
     """Serializer for a full gallery item"""
-    slug = serializers.ReadOnlyField()
     images = serializers.SerializerMethodField()
+    uploaded_images = serializers.ListField(
+        child = serializers.FileField(
+            max_length=1000000,
+            allow_empty_file=False,
+            use_url=False
+        ),
+        write_only=True,
+        required=False
+    )
+
 
     class Meta:
         model = GalleryItem
@@ -47,9 +55,34 @@ class GallerySerializer(serializers.ModelSerializer):
             'description',
             'published',
             'images',
+            'uploaded_images',
         ]
 
     def get_images(self, obj):
         images = GalleryImage.objects.filter(item_id=obj.id)
         serializer = GalleryImageSerializer(images, many=True)
         return serializer.data
+
+    def create(self, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            gallery = GalleryItem.objects.create(**validated_data)
+            for image in uploaded_images:
+                GalleryImage.objects.create(
+                    item_id=gallery.id,
+                    image=image
+                )
+        else:
+            gallery = GalleryItem.objects.create(**validated_data)
+        return gallery
+
+    def update(self, instance, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            for image in uploaded_images:
+                GalleryImage.objects.create(
+                    item_id=instance.id,
+                    image=image
+                )
+        super().update(instance, validated_data)
+        return instance

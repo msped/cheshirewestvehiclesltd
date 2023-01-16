@@ -8,28 +8,36 @@ class VehicleImagesSerializer(serializers.ModelSerializer):
             "id",
             "vehicle",
             "image",
-            "order_of_images"
         ]
 
 class VehicleSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
-    reserved = serializers.CharField(
-        source="get_reserved_display"
-    )
-    car_state = serializers.CharField(
-        source="get_car_state_display"
-    )
-    fuel = serializers.CharField(
-        source="get_fuel_display"
-    )
-    body_type = serializers.CharField(
-        source="get_body_type_display"
+    images = VehicleImagesSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child = serializers.FileField(
+            max_length=1000000,
+            allow_empty_file=False,
+            use_url=False
+        ),
+        write_only=True,
+        required=False
     )
 
-    def get_images(self, obj):
-        images = VehicleImages.objects.filter(vehicle_id=obj.id)
-        serializer = VehicleImagesSerializer(images, many=True)
-        return serializer.data
+    reserved = serializers.CharField(
+        source="get_reserved_display",
+        read_only=True
+    )
+    car_state = serializers.CharField(
+        source="get_car_state_display",
+        read_only=True
+    )
+    fuel = serializers.CharField(
+        source="get_fuel_display",
+        read_only=True
+    )
+    body_type = serializers.CharField(
+        source="get_body_type_display",
+        read_only=True
+    )
 
     class Meta:
         model = Vehicle
@@ -49,8 +57,34 @@ class VehicleSerializer(serializers.ModelSerializer):
             "mot_expiry",
             "extras",
             "price",
-            "images"
+            'published',
+            'images',
+            'uploaded_images',
         ]
+
+    def create(self, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            vehicle = Vehicle.objects.create(**validated_data)
+            for image in uploaded_images:
+                VehicleImages.objects.create(
+                    vehicle_id=vehicle.id,
+                    image=image
+                )
+        else:
+            vehicle = Vehicle.objects.create(**validated_data)
+        return vehicle
+
+    def update(self, instance, validated_data):
+        if 'uploaded_images' in validated_data:
+            uploaded_images = validated_data.pop('uploaded_images')
+            for image in uploaded_images:
+                VehicleImages.objects.create(
+                    vehicle_id=instance.id,
+                    image=image
+                )
+        super().update(instance, validated_data)
+        return instance
 
 class VehicleStateSerializer(serializers.ModelSerializer):
     reserved = serializers.CharField(

@@ -37,8 +37,7 @@ class TestGalleryModels(APITestCase):
             description='Test description',
             published=True
         )
-        self.assertEqual(str(gallery_item), '1 Mercedes 190E Cosworth')
-        self.assertEqual(gallery_item.id, 1)
+        self.assertEqual(str(gallery_item), f'{gallery_item.id} Mercedes 190E Cosworth')
         self.assertEqual(gallery_item.make, 'Mercedes')
         self.assertEqual(gallery_item.model, '190E')
         self.assertEqual(gallery_item.trim, 'Cosworth')
@@ -54,22 +53,19 @@ class TestGalleryModels(APITestCase):
         )
         GalleryImage.objects.create(
             item=gallery_item,
-            image=SimpleUploadedFile('image_1.jpg', b'testimageofacar'),
-            order_of_images=1
+            image=SimpleUploadedFile('image_1.jpg', b'testimageofacar')
         ).save()
-        gallery_image = GalleryImage.objects.get(
-            item=gallery_item,
-            order_of_images=1
-        )
+        gallery_image = GalleryImage.objects.filter(
+            item=gallery_item
+        ).first()
         self.assertEqual(
             str(gallery_image),
-            'Order: 1 - (1) Mercedes 190E Cosworth'
+            f'({gallery_item.id}) Mercedes 190E Cosworth'
         )
         self.assertEqual(gallery_image.item.make, 'Mercedes')
         self.assertEqual(gallery_image.item.model, '190E')
         self.assertEqual(gallery_image.item.trim, 'Cosworth')
         self.assertEqual(gallery_image.image.url, '/media/gallery/image_1.jpg')
-        self.assertEqual(gallery_image.order_of_images, 1)
 
     def test_in_order(self):
         self.gallery_item()
@@ -138,7 +134,7 @@ class TestGalleryApp(APITestCase):
                         'year': 2013,
                         'description': 'loads of stuff',
                         'published': True,
-                        'images': [],
+                        'images': []
                     }
                 ]
             }
