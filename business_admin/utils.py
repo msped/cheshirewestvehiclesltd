@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from xhtml2pdf.pisa import pisaDocument
 
-def get_parts(request):
-    parts = {}
+def get_items(request):
+    items = {}
 
     for item in range(1, len(request)):
         if request.get("description-" + str(item)) is not None:
@@ -14,14 +14,13 @@ def get_parts(request):
             row['qty'] = request['qty-' + str(item)]
             row['unit'] = request['unit-' + str(item)]
             row['line'] = request['line-' + str(item)]
-            parts[str(item)] = row
+            items[str(item)] = row
         else:
             break
-    return parts
+    return items
 
 def create_data_structure(request):
     data = {
-
         "customer": {
             "name": request["name"],
             "phone_number": request["phone_number"],
@@ -47,7 +46,7 @@ def create_data_structure(request):
         "total": request["invoice-total"],
         "comments": request["comments"],
     }
-    data["parts"] = get_parts(request)
+    data["parts"] = get_items(request)
 
     return data
 
