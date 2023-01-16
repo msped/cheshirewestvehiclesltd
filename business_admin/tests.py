@@ -242,6 +242,52 @@ class TestBusinessAdminVehicle(APITestCase):
             vehicle_id=vehicle.id
         ).count(), 4)
 
+    def update_vehicle_without_images(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        vehicle = Vehicle.objects.get(
+            make="BMW",
+            model="5 Series",
+            trim="M",
+            year=2018
+        )
+        response = self.client.patch(
+            f'/api/admin/vehicle/{vehicle.slug}/',
+            {
+                "make": "BMW",
+                "model": "3 Series",
+                "trim": "M",
+                "year": 2018,
+                "fuel": "1",
+                "body_type": "4",
+                "car_state": "2",
+                "reserved": "1",
+                "mileage": 32500,
+                "engine_size": 2998,
+                "mot_expiry": "2023-04-11",
+                "extras": "Test M3",
+                "price": "32500.00",
+                "published": True,
+                'uploaded_images': []
+            },
+            format="multipart",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(VehicleImages.objects.filter(
+            vehicle_id=vehicle.id
+        ).count(), 4)
+        json_response = json.loads(response.content)
+        self.assertEqual(json_response['model'], '3 Series')
+        self.assertEqual(json_response['mileage'], 32500)
+        self.assertEqual(json_response['extras'], 'Test M3')
+
     def delete_vehicle_image(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -252,7 +298,7 @@ class TestBusinessAdminVehicle(APITestCase):
         )
         access_token = access_request.data['access']
         image = VehicleImages.objects.filter(
-            vehicle__slug="bmw-5-series-m-2018"
+            vehicle__slug="bmw-3-series-m-2018"
         ).first()
         response = self.client.delete(
             f'/api/admin/vehicle/image/{image.id}/',
@@ -273,7 +319,7 @@ class TestBusinessAdminVehicle(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.delete(
-            '/api/admin/vehicle/bmw-5-series-m-2018/',
+            '/api/admin/vehicle/bmw-3-series-m-2018/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 204)
@@ -283,6 +329,7 @@ class TestBusinessAdminVehicle(APITestCase):
         self.create_vehicle_with_images()
         self.get_vehicle()
         self.update_vehicle_with_images()
+        self.update_vehicle_without_images()
         self.delete_vehicle_image()
         self.delete_vehicle()
 
