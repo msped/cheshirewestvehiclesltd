@@ -35,6 +35,7 @@ def create_data_structure(request):
         "vehicle": {
             "make": request["make"],
             "model": request["model"],
+            "trim": request["trim"],
             "year": request["year"],
             "mileage": request["mileage"],
             "vrm": request["vrm"]
