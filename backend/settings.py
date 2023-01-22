@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'phonenumber_field',
     'rest_framework',
+    'django_filters',
     'corsheaders',
     'accounts',
     'business_admin',
@@ -152,6 +153,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    "DEFAULT_FILTER_BACKENDS": ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 SIMPLE_JWT = {
