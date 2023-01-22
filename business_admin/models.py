@@ -5,6 +5,12 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 class Customer(models.Model):
+    customer_id = models.CharField(
+        max_length=9,
+        blank=True,
+        unique=True,
+        editable=False
+    )
     first_name=models.CharField(max_length=50)
     last_name=models.CharField(max_length=50)
     phone_number=PhoneNumberField()
@@ -18,21 +24,19 @@ class Customer(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
-class InvoiceLabour(models.Model):
-    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE)
-    quantity=models.IntegerField()
-    unit=models.DecimalField(max_digits=6, decimal_places=2)
-    total=models.DecimalField(max_digits=6, decimal_places=2)
-
-    def get_total(self):
-        return round(self.quantity * self.unit, 2)
-
-    def __str__(self):
-        return f'{self.quantity} at £{self.unit} per hour'
-
     def save(self, *args, **kwargs):
-        self.total = self.get_total()
-        super(InvoiceLabour, self).save(*args, **kwargs)
+        if not self.customer_id:
+            today = datetime.date.today()
+            today_string = today.strftime('%y%m%d')
+            next_customer_number = '01'
+            last_customer = Customer.objects.filter(
+                customer_id__startswith=today_string
+            ).order_by('customer_id').last()
+            if last_customer:
+                last_customer_number = int(last_customer.customer_id[6:])
+                next_customer_number = '{0:03d}'.format(last_customer_number + 1)
+            self.customer_id = today_string + next_customer_number
+        super(Customer, self).save(*args, **kwargs)
 
 class Invoice(models.Model):
     invoice_id = models.CharField(
@@ -49,11 +53,18 @@ class Invoice(models.Model):
     year=models.IntegerField()
     mileage=models.IntegerField()
     vrm=models.CharField(max_length=10)
-    total=models.DecimalField(max_digits=6, decimal_places=2)
+    labour_quantity=models.IntegerField(default=0)
+    labour_unit=models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    labour_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    invoice_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     comments=models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.invoice_id} - {self.vrm}'
+
+    def get_labour_total(self):
+        total = self.labour_quantity * self.labour_unit
+        return round(total, 2)
 
     def get_total(self):
         total = 0
@@ -61,9 +72,7 @@ class Invoice(models.Model):
         if items:
             for item in items:
                 total += item.line_price
-        labour = InvoiceLabour.objects.get(invoice_id=self.id)
-        if labour:
-            total += labour.total
+        total += self.get_labour_total()
         return round(total, 2)
 
     def save(self, *args, **kwargs):
@@ -78,7 +87,7 @@ class Invoice(models.Model):
                 last_invoice_number = int(last_invoice.invoice_id[6:])
                 next_invoice_number = '{0:03d}'.format(last_invoice_number + 1)
             self.invoice_id = today_string + next_invoice_number
-        self.total = self.get_total()
+        self.labour_total = self.get_labour_total()
         super(Invoice, self).save(*args, **kwargs)
 
 class InvoiceItem(models.Model):
