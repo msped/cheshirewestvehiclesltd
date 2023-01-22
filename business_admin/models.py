@@ -10,7 +10,7 @@ class Customer(models.Model):
     phone_number=PhoneNumberField()
     email=models.EmailField(blank=True, null=True)
     address_line_1=models.CharField(max_length=50)
-    address_line_2=models.CharField(max_length=50)
+    address_line_2=models.CharField(max_length=50, blank=True, null=True)
     town_city=models.CharField(max_length=50)
     county=models.CharField(max_length=35)
     postcode=models.CharField(max_length=10)
