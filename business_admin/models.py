@@ -28,7 +28,7 @@ class Customer(models.Model):
         if not self.customer_id:
             today = datetime.date.today()
             today_string = today.strftime('%y%m%d')
-            next_customer_number = '01'
+            next_customer_number = '001'
             last_customer = Customer.objects.filter(
                 customer_id__startswith=today_string
             ).order_by('customer_id').last()
@@ -79,7 +79,7 @@ class Invoice(models.Model):
         if not self.invoice_id:
             today = datetime.date.today()
             today_string = today.strftime('%y%m%d')
-            next_invoice_number = '01'
+            next_invoice_number = '001'
             last_invoice = Invoice.objects.filter(
                 invoice_id__startswith=today_string
             ).order_by('invoice_id').last()
