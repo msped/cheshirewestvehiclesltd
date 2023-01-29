@@ -21,7 +21,7 @@ from .utils import invoice_handler
 # Create your views here.
 
 class CreateInvoice(APIView):
-    #permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = InvoiceSerializer(data=request.data, many=False)
