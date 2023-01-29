@@ -15,18 +15,29 @@ from sales.serializers import (
     VehicleSerializer,
     VehicleImagesSerializer
 )
+from .serializers import InvoiceSerializer
 from .utils import invoice_handler
 
 # Create your views here.
 
 class CreateInvoice(APIView):
-    permission_classes = [IsAdminUser]
+    #permission_classes = [IsAdminUser]
 
     def post(self, request):
-        email = invoice_handler(request.data)
-        if email:
-            return Response(status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = InvoiceSerializer(data=request.data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            send_invoice_by_email = invoice_handler(serializer.data)
+            if send_invoice_by_email:
+                return Response(status=status.HTTP_200_OK)
+            return Response(
+                {"error": "Invoice couldn't be sent."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 class CreateListVehicle(ListCreateAPIView):
     queryset = Vehicle.objects.all()
