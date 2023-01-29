@@ -4,53 +4,14 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from xhtml2pdf.pisa import pisaDocument
 
-def get_items(request):
-    items = {}
+from .models import Customer
 
-    for item in range(1, len(request)):
-        if request.get("description-" + str(item)) is not None:
-            row = {}
-            row["description"] = request["description-" + str(item)]
-            row['qty'] = request['qty-' + str(item)]
-            row['unit'] = request['unit-' + str(item)]
-            row['line'] = request['line-' + str(item)]
-            items[str(item)] = row
-        else:
-            break
-    return items
-
-def create_data_structure(request):
-    data = {
-        "customer": {
-            "first_name": request["first_name"],
-            "last_name": request["last_name"],
-            "phone_number": request["phone_number"],
-            "email": request["email"],
-            "address_line_1": request["address_line_1"],
-            "address_line_2": request["address_line_2"],
-            "town_city": request["town_city"],
-            "county": request["county"],
-            "postcode": request["postcode"]
-        },
-        "vehicle": {
-            "make": request["make"],
-            "model": request["model"],
-            "trim": request["trim"],
-            "year": request["year"],
-            "mileage": request["mileage"],
-            "vrm": request["vrm"]
-        },
-        "labour": {
-            "qty": request["labour-qty"],
-            "unit": request["labour-unit"],
-            "total": request["labour-total"],
-        },
-        "total": request["invoice-total"],
-        "comments": request["comments"],
-    }
-    data["parts"] = get_items(request)
-
-    return data
+def get_customer(customer_data):
+    if isinstance(customer_data, dict):
+        customer = Customer.objects.create(**customer_data)
+    else:
+        customer = Customer.objects.get(customer_id=customer_data)
+    return customer.id
 
 def render_to_pdf(template, data=None):
     template = render_to_string("invoice_template.html", data).encode("utf-8")
@@ -60,8 +21,7 @@ def render_to_pdf(template, data=None):
         return None
     return HttpResponse(result.getvalue(), content_type="application/pdf")
 
-def invoice_handler(request):
-    data = create_data_structure(request)
+def invoice_handler(data):
     pdf = render_to_pdf(
         "invoice_template.html",
         {'data': data}
@@ -76,5 +36,5 @@ def invoice_handler(request):
         )
         email.attach("invoice.pdf", pdf.getvalue(), "application/pdf")
         email.send()
-        return data["customer"]["email"]
-    return None
+        return True
+    return False
