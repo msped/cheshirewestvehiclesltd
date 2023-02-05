@@ -91,7 +91,7 @@ class Invoice(models.Model):
         super(Invoice, self).save(*args, **kwargs)
 
 class InvoiceItem(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="line_items")
     description=models.TextField()
     quantity=models.IntegerField()
     unit_price=models.DecimalField(max_digits=6, decimal_places=2)
