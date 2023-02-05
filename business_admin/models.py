@@ -46,7 +46,11 @@ class Invoice(models.Model):
         editable=False
     )
     created_date=models.DateTimeField(auto_now_add=timezone.now())
-    customer=models.ForeignKey(Customer, on_delete=models.PROTECT)
+    customer=models.ForeignKey(
+        Customer,
+        on_delete=models.PROTECT,
+        related_name="customer"
+    )
     make=models.CharField(max_length=75)
     model=models.CharField(max_length=100)
     trim=models.CharField(max_length=150)
