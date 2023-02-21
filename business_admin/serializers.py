@@ -23,7 +23,6 @@ class CustomerSerializer(serializers.ModelSerializer):
         ]
 
 class InvoiceItemSerializer(serializers.ModelSerializer):
-    invoice = serializers.ReadOnlyField()
     line_price = serializers.DecimalField(
         max_digits=6,
         decimal_places=2,
@@ -33,6 +32,7 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
         fields = [
+            'id',
             'invoice',
             'description',
             'quantity',
@@ -42,11 +42,11 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
 
 class InvoiceSerializer(serializers.ModelSerializer):
     invoice_id = serializers.ReadOnlyField()
-    created_date=serializers.ReadOnlyField()
+    created_date= serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
     customer = CustomerSerializer(many=False)
-    line_items = serializers.SerializerMethodField(read_only=True)
+    line_items = InvoiceItemSerializer(many=True, read_only=True)
     new_line_items = serializers.ListField(
-        child=InvoiceItemSerializer(),
+        child=serializers.DictField(),
         write_only=True,
         required=False
     )
@@ -64,6 +64,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = [
+            'id',
             'invoice_id',
             'created_date',
             'customer',
@@ -82,11 +83,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'new_line_items'
         ]
 
-    def get_line_items(self, obj):
-        items = InvoiceItem.objects.filter(invoice_id=obj.id)
-        serializer = InvoiceItemSerializer(items, many=True)
-        return serializer.data
-
     def create(self, validated_data):
         customer = get_customer(validated_data.pop('customer'))
         if 'new_line_items' in validated_data:
@@ -99,3 +95,13 @@ class InvoiceSerializer(serializers.ModelSerializer):
         invoice.invoice_total = invoice.get_total()
         invoice.save()
         return invoice
+
+    def update(self, instance, validated_data):
+        if 'new_line_items' in validated_data:
+            invoice_items = validated_data.pop('new_line_items')
+            for item in invoice_items:
+                InvoiceItem.objects.create(
+                    invoice_id=instance.id, **item
+                )
+        super().update(instance, validated_data)
+        return instance
