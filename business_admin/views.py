@@ -1,3 +1,4 @@
+import json
 from rest_framework import status
 from rest_framework.generics import (
     DestroyAPIView,
@@ -15,6 +16,7 @@ from sales.serializers import (
     VehicleSerializer,
     VehicleImagesSerializer
 )
+from .models import Invoice
 from .serializers import InvoiceSerializer
 from .utils import invoice_handler
 
@@ -29,7 +31,7 @@ class CreateInvoice(APIView):
             serializer.save()
             send_invoice_by_email = invoice_handler(serializer.data)
             if send_invoice_by_email:
-                return Response(status=status.HTTP_200_OK)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
                 {"error": "Invoice couldn't be sent."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -38,6 +40,13 @@ class CreateInvoice(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+class RetrieveUpdateDestroyInvoice(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+    lookup_field = 'invoice_id'
+    lookup_url_kwarg = 'invoice_id'
 
 class CreateListVehicle(ListCreateAPIView):
     queryset = Vehicle.objects.all()
