@@ -7,13 +7,242 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.test import override_settings
 from rest_framework.test import APITestCase
-from rest_framework import status
 
 from gallery.models import GalleryItem, GalleryImage
 from sales.models import VehicleImages, Vehicle
+from .models import Customer, InvoiceItem, Invoice
+from .serializers import (
+    InvoiceItemSerializer,
+    InvoiceSerializer,
+    CustomerSerializer
+)
+from .utils import get_customer
 
-# Create your tests here.
 MEDIA_ROOT = tempfile.mkdtemp()
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
+class TestInvoiceModelsAndSerializers(APITestCase):
+
+    def setUp(self):
+        user = get_user_model()
+        user.objects.create(
+            first_name= 'Harold',
+            last_name= 'Finch',
+            username= 'admin',
+            password=make_password('TestP455word!'),
+            is_staff=True
+        ).save()
+        Customer.objects.create(
+            first_name="Cameron",
+            last_name="Fitzgerald",
+            phone_number="07123456781",
+            email="testCam@example.com",
+            address_line_1="10 Webb\'s Lane",
+            address_line_2="",
+            town_city="Middlewich",
+            county="Cheshire",
+            postcode="AA1 1AA"
+        ).save()
+        customer = Customer.objects.get(
+            first_name="Cameron",
+            last_name="Fitzgerald",
+            phone_number="07123456781",
+            email="testCam@example.com"
+        )
+        Invoice.objects.create(
+            customer=customer,
+            make="Mercedes",
+            model="Sprinter",
+            trim="2.1 CDI",
+            year=2013,
+            mileage=72000,
+            vrm="DK19 CLX",
+            labour_quantity=1,
+            labour_unit=25.00,
+            labour_total=25.00,
+            invoice_total=25.00,
+            comments="test"
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
+    def customer_serializer_working(self):
+        data = {
+            "first_name": "Jane",
+            "last_name": "Doe",
+            "phone_number": "07123456788",
+            "email": "testJane@example.com",
+            "address_line_1": "1 Webb\'s Lane",
+            "address_line_2": "",
+            "town_city": "Middlewich",
+            "county": "Cheshire",
+            "postcode": "AA1 1AA"
+        }
+        serializer = CustomerSerializer(data=data, many=False)
+        self.assertTrue(serializer.is_valid())
+
+    def invoice_item_serializer_working(self):
+        invoice = Invoice.objects.get(
+            make="Mercedes",
+            model="Sprinter",
+            trim="2.1 CDI",
+            year=2013,
+            mileage=72000,
+            vrm="DK19 CLX",
+        )
+        data = {
+            "invoice": invoice.id,
+            "description": "Test",
+            "quantity": 1,
+            "unit_price": 25.00
+        }
+        serializer = InvoiceItemSerializer(data=data, many=False)
+        self.assertTrue(serializer.is_valid())
+
+    def invoice_serializer_working(self):
+        data = {
+            "customer": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "phone_number": "07123456789",
+                "email": "testJohn@example.com",
+                "address_line_1": "1 Webb\'s Lane",
+                "address_line_2": "",
+                "town_city": "Middlewich",
+                "county": "Cheshire",
+                "postcode": "AA1 1AA"
+            },
+            "make": "Ford",
+            "model": "Focus",
+            "trim": "Zetec",
+            "year": 2014,
+            "mileage": 29000,
+            "vrm": "AB09 ABC",
+            "labour_quantity": 1,
+            "labour_unit": 10.00,
+            "new_line_items": [
+                {
+                    "description": "Oil Change",
+                    "quantity": 1,
+                    "unit_price": 25.00,
+                },
+                {
+                    "description": "Air Filter Change",
+                    "quantity": 1,
+                    "unit_price": 15.00,
+                },
+            ],
+            "comments": "Test invoice with working serializer.",
+        }
+        serializer = InvoiceSerializer(data=data, many=False)
+        self.assertTrue(serializer.is_valid())
+
+    def get_customer_in_database(self):
+        customer = Customer.objects.get(
+            first_name="Cameron",
+            email="testCam@example.com"
+        )
+        response = get_customer(customer_data=customer.customer_id)
+        self.assertEqual(response, customer.id)
+
+    def get_customer_not_in_database(self):
+        data = {
+            "first_name": "James",
+            "last_name": "Bell",
+            "phone_number": "071113456789",
+            "email": "testJames@example.com",
+            "address_line_1": "27 Test\'s Lane",
+            "address_line_2": "",
+            "town_city": "Crewe",
+            "county": "Cheshire",
+            "postcode": "AA4 7AA"
+        }
+        self.assertFalse(Customer.objects.filter(
+            first_name="James",
+            last_name="Bell",
+            email="testJames@example.com",
+            phone_number="071113456789"
+        ).exists())
+        get_customer(customer_data=data)
+        self.assertTrue(Customer.objects.filter(
+            first_name="James",
+            last_name="Bell",
+            email="testJames@example.com",
+            phone_number="071113456789"
+        ).exists())
+
+    def customer_str(self):
+        customer = Customer.objects.get(
+            first_name="Cameron",
+            last_name="Fitzgerald",
+            phone_number="07123456781",
+            email="testCam@example.com"
+        )
+        self.assertEqual(str(customer), 'Cameron Fitzgerald')
+
+    def invoice_item_str(self):
+        invoice = Invoice.objects.get(
+            make="Mercedes",
+            model="Sprinter",
+            trim="2.1 CDI",
+            year=2013,
+            mileage=72000,
+            vrm="DK19 CLX"
+        )
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description="Test description no.1",
+            quantity=2,
+            unit_price=10.00,
+            line_price=20.00
+        )
+        invoice_item = InvoiceItem.objects.get(
+            invoice=invoice,
+            description="Test description no.1",
+            quantity=2,
+            unit_price=10.00,
+            line_price=20.00
+        )
+        self.assertEqual(
+            str(invoice_item),
+            "Test description no.1 - £20.00"
+        )
+
+    def invoice_str(self):
+        invoice = Invoice.objects.get(
+            make="Mercedes",
+            model="Sprinter",
+            trim="2.1 CDI",
+            year=2013,
+            mileage=72000,
+            vrm="DK19 CLX"
+        )
+        self.assertEqual(str(invoice), f"{invoice.invoice_id} - DK19 CLX")
+
+    def invoice_get_total(self):
+        invoice = Invoice.objects.get(
+            make="Mercedes",
+            model="Sprinter",
+            trim="2.1 CDI",
+            year=2013,
+            mileage=72000,
+            vrm="DK19 CLX"
+        )
+        self.assertEqual(invoice.get_total(), 45.00)
+
+    def test_in_order(self):
+        self.customer_serializer_working()
+        self.invoice_item_serializer_working()
+        self.invoice_serializer_working()
+        self.get_customer_in_database()
+        self.get_customer_not_in_database()
+        self.customer_str()
+        self.invoice_item_str()
+        self.invoice_str()
+        self.invoice_get_total()
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestBusinessAdminInvoice(APITestCase):
@@ -28,19 +257,13 @@ class TestBusinessAdminInvoice(APITestCase):
             is_staff=True
         ).save()
 
-    def temporary_image(self):
-        image = Image.new('RGB', (100, 100))
-        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
-        image.save(tmp_file, 'jpeg')
-        tmp_file.seek(0)
-        return tmp_file
-
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def test_sending_invoice_by_email(self):
+    def sending_invoice_by_email_working(self):
+        # Get access token
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -49,35 +272,383 @@ class TestBusinessAdminInvoice(APITestCase):
             }
         )
         access_token = access_request.data['access']
+
+        # Check customer isn't already in the DB
+        self.assertFalse(Customer.objects.filter(
+            first_name="Elizabeth",
+            last_name="Windsor",
+            email="test@example.com",
+            phone_number="07123456789"
+        ).exists())
+
+        # Send post to create invoice
         response = self.client.post(
             '/api/admin/invoice/',
             {
-                "name": "Elizbath Windsor",
-                "phone_number": "07123456789",
-                "email": "test@example.com",
-                "address_line_1": "1 The Mall",
-                "address_line_2": "",
-                "town_city": "Westminter",
-                "county": "London",
-                "postcode": "SW1A 1AA",
+                "customer": {
+                    "first_name": "Elizabeth",
+                    "last_name": "Windsor",
+                    "phone_number": "07123456789",
+                    "email": "test@example.com",
+                    "address_line_1": "1 The Mall",
+                    "address_line_2": "",
+                    "town_city": "Westminter",
+                    "county": "London",
+                    "postcode": "SW1A 1AA"
+                },
                 "make": "Land Rover",
                 "model": "Defender",
-                "year": "2021",
+                "trim": "110",
+                "year": 2021,
                 "mileage": 250,
                 "vrm": "B16 LIZ",
-                "labour-qty": 10,
-                "labour-unit": 100,
-                "labour-total": 1000,
-                "invoice-total": 1500,
+                "labour_quantity": 10,
+                "labour_unit": 15,
+                "new_line_items": [
+                    {
+                        "description": "Oil Change",
+                        "quantity": 1,
+                        "unit_price": 25.00,
+                    },
+                    {
+                        "description": "Air Filter Change",
+                        "quantity": 1,
+                        "unit_price": 15.00,
+                    },
+                ],
                 "comments": "Testing sending of pdf email",
-                "description-1": "Steering rack",
-                "qty-1": 1,
-                "unit-1": 500,
-                "line-1": 500
             },
+            format="json",
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check Page Response
+        self.assertEqual(response.status_code, 200)
+
+        # Check that the customer is added to the DB
+        self.assertTrue(Customer.objects.filter(
+            first_name="Elizabeth",
+            last_name="Windsor",
+            email="test@example.com",
+            phone_number="07123456789"
+        ).exists())
+
+        # Check Invoice
+        invoice = Invoice.objects.get(
+            make="Land Rover",
+            model="Defender",
+            trim="110",
+            year=2021,
+            mileage=250,
+            vrm="B16 LIZ",
+        )
+        self.assertEqual(invoice.customer.first_name, "Elizabeth")
+        self.assertEqual(invoice.customer.last_name, "Windsor")
+        self.assertEqual(invoice.customer.email, "test@example.com")
+        self.assertEqual(invoice.customer.phone_number, "07123456789")
+        self.assertEqual(invoice.make, "Land Rover")
+        self.assertEqual(invoice.model, "Defender")
+        self.assertEqual(invoice.trim, "110")
+        self.assertEqual(invoice.year, 2021)
+        self.assertEqual(invoice.mileage, 250)
+        self.assertEqual(invoice.vrm, "B16 LIZ")
+        self.assertEqual(invoice.labour_quantity, 10.00)
+        self.assertEqual(invoice.labour_unit, 15.00)
+        self.assertEqual(invoice.labour_total, 150.00)
+        self.assertEqual(invoice.invoice_total, 190.00)
+        self.assertEqual(invoice.comments, "Testing sending of pdf email")
+
+        # Check both line items exists in DB
+        self.assertTrue(InvoiceItem.objects.filter(
+            description="Oil Change",
+            quantity=1,
+            unit_price=25.00,
+            line_price=25.00
+        ).exists())
+
+        self.assertTrue(InvoiceItem.objects.filter(
+            description="Air Filter Change",
+            quantity=1,
+            unit_price=15.00,
+            line_price=15.00
+        ).exists())
+
+    def sending_invoice_by_email_working_no_line_items(self):
+        # Get access token
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+
+        # Check customer isn't already in the DB
+        self.assertFalse(Customer.objects.filter(
+            first_name="John",
+            last_name="Reese",
+            email="JReese@samaritan.com",
+            phone_number="07976449741"
+        ).exists())
+
+        # Send post to create invoice
+        response = self.client.post(
+            '/api/admin/invoice/',
+            {
+                "customer": {
+                    "first_name": "John",
+                    "last_name": "Reese",
+                    "phone_number": "07976449741",
+                    "email": "JReese@samaritan.com",
+                    "address_line_1": "1 The Library",
+                    "address_line_2": "",
+                    "town_city": "York",
+                    "county": "North Yorkshire",
+                    "postcode": "YO1 OSB"
+                },
+                "make": "Ford",
+                "model": "Mustang",
+                "trim": "GT",
+                "year": 2016,
+                "mileage": 32000,
+                "vrm": "MK16 YGB",
+                "labour_quantity": 1,
+                "labour_unit": 15,
+                "comments": "Testing sending of pdf email without line items",
+            },
+            format='json',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+
+        # Check Page Response
+        self.assertEqual(response.status_code, 200)
+
+        # Check that the customer is added to the DB
+        self.assertTrue(Customer.objects.filter(
+            first_name="John",
+            last_name="Reese",
+            email="JReese@samaritan.com",
+            phone_number="07976449741"
+        ).exists())
+
+        # Check Invoice
+        invoice = Invoice.objects.get(
+            make="Ford",
+            model="Mustang",
+            trim="GT",
+            year=2016,
+            mileage=32000,
+            vrm="MK16 YGB",
+        )
+        self.assertEqual(invoice.customer.first_name, "John")
+        self.assertEqual(invoice.customer.last_name, "Reese")
+        self.assertEqual(invoice.customer.email, "JReese@samaritan.com")
+        self.assertEqual(invoice.customer.phone_number, "07976449741")
+        self.assertEqual(invoice.make, "Ford")
+        self.assertEqual(invoice.model, "Mustang")
+        self.assertEqual(invoice.trim, "GT")
+        self.assertEqual(invoice.year, 2016)
+        self.assertEqual(invoice.mileage, 32000)
+        self.assertEqual(invoice.vrm, "MK16 YGB")
+        self.assertEqual(invoice.labour_quantity, 1)
+        self.assertEqual(invoice.labour_unit, 15.00)
+        self.assertEqual(invoice.labour_total, 15.00)
+        self.assertEqual(invoice.invoice_total, 15.00)
+        self.assertEqual(invoice.comments, "Testing sending of pdf email without line items")
+
+        # Check no line items exist in DB
+        self.assertFalse(InvoiceItem.objects.filter(
+            invoice_id=invoice.id
+        ).exists())
+
+    def sending_invoice_by_email_serializer_invalid(self):
+        # Get access token
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+
+        # Send post to create invoice
+        response = self.client.post(
+            '/api/admin/invoice/',
+            {
+                "customer": {
+                    "first_name": "Elizabeth",
+                    "last_name": "Windsor",
+                    "phone_number": "07123456789",
+                    "email": "test@example.com",
+                    "address_line_1": "1 The Mall",
+                    "address_line_2": "",
+                    "town_city": "Westminter",
+                    "county": "London",
+                    "postcode": "SW1A 1AA"
+                },
+                "make": "Land Rover",
+                "model": "Defender",
+                "trim": "110",
+                "year": 2021,
+                "mileage": 250,
+                "vrm": "",
+                "labour_quantity": 10,
+                "labour_unit": 15,
+                "new_line_items": [
+                    {
+                        "description": "Oil Change",
+                        "quantity": 1,
+                        "unit_price": 25.00,
+                    },
+                    {
+                        "description": "Air Filter Change",
+                        "quantity": 1,
+                        "unit_price": 15.00,
+                    },
+                ],
+                "comments": "Testing sending of pdf email",
+            },
+            format='json',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "vrm": ["This field may not be blank."]
+            }
+        )
+
+    def get_invoice_not_found(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/36573523/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def get_invoice_working(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        invoice = Invoice.objects.get(customer__first_name="Elizabeth")
+        response = self.client.get(
+            f'/api/admin/invoice/{invoice.invoice_id}/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def update_invoice_not_found(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/675487644/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def update_invoice_working(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        invoice = Invoice.objects.get(customer__first_name="Elizabeth")
+
+        # Check only two original line items
+        self.assertEqual(
+            InvoiceItem.objects.filter(
+                invoice_id=invoice.id
+            ).count(),
+            2
+        )
+
+        response = self.client.patch(
+            f'/api/admin/invoice/{invoice.invoice_id}/',
+            {
+                "new_line_items": [
+                    {
+                        "description": "Front Splitter",
+                        "quantity": 1,
+                        "unit_price": 500.00
+                    },
+                ]
+            },
+            format="json",
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            InvoiceItem.objects.filter(
+                invoice_id=invoice.id
+            ).count(),
+            3
+        )
+
+    def destroy_invoice_not_found(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/8789456345/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def destroy_invoice_working(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        invoice = Invoice.objects.get(customer__first_name="Elizabeth")
+        response = self.client.delete(
+            f'/api/admin/invoice/{invoice.invoice_id}/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+
+    def test_in_order(self):
+        self.sending_invoice_by_email_working()
+        self.sending_invoice_by_email_working_no_line_items()
+        self.sending_invoice_by_email_serializer_invalid()
+        self.get_invoice_not_found()
+        self.get_invoice_working()
+        self.update_invoice_not_found()
+        self.update_invoice_working()
+        self.destroy_invoice_not_found()
+        self.destroy_invoice_working()
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestBusinessAdminVehicle(APITestCase):

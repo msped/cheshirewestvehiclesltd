@@ -63,21 +63,21 @@
                 <table style="width: 100%;">
                     <tr>
                         <td style="width:70%;">
-                            {{ data.customer.name}}<br>
-                            {% if data.customer.address_line_1 %}{{data.customer.address_line_1}}<br>{% endif %}
-                            {% if data.customer.address_line_2 %}{{data.customer.address_line_2}} <br>{% endif %}
-                            {% if data.customer.town_city %}{{data.customer.town_city}}<br>{% endif %}
-                            {% if data.customer.county %}{{data.customer.county}}<br>{% endif %}
-                            {% if data.customer.postcode %}{{data.customer.postcode}}<br>{% endif %}
+                            {{ data.customer.first_name}} {{ data.customer.last_name }}<br>
+                            {% if data.customer.address_line_1 %}{{ data.customer.address_line_1 }} <br>{% endif %}
+                            {% if data.customer.address_line_2 %}{{ data.customer.address_line_2 }} <br>{% endif %}
+                            {% if data.customer.town_city %}{{ data.customer.town_city }} <br>{% endif %}
+                            {% if data.customer.county %}{{ data.customer.county }} <br>{% endif %}
+                            {% if data.customer.postcode %}{{ data.customer.postcode }} <br>{% endif %}
                             <div stlye="margin: 1rem 0;">
-                                Phone: {{data.customer.phone_number}}<br>
-                                E-mail: {{data.customer.email}}
+                                Phone: {{ data.customer.phone_number }} <br>
+                                E-mail: {{ data.customer.email }}
                             </div>
                         </td>
                         <td style="width:30%; vertical-align: top;">
                             <div style="float: right">
-                                {% if data.invoice_number %}<p style="text-align: right;">{{data.invoice_number}}</p>{% endif %}
-                                <p style="text-align: right;">Date: {% now "jS F Y " %}</p>
+                                {% if data.invoice_number %}<p style="text-align: right;">{{ data.invoice_number }}</p>{% endif %}
+                                <p style="text-align: right;">Date: {{ data.created_date }}</p>
                             </div>
                         </td>
                     </tr>
@@ -90,6 +90,7 @@
                         <tr>
                             <th>Make</th>
                             <th>Model</th>
+                            <th>Trim</th>
                             <th>Year</th>
                             <th>Mileage</th>
                             <th>VRM</th>
@@ -97,19 +98,22 @@
                     </thead>
                     <tbody>
                         <td>
-                            <p style="text-align: center;">{{ data.vehicle.make }}</p>
+                            <p style="text-align: center;">{{ data.make }}</p>
                         </td>
                         <td>
-                            <p style="text-align: center;">{{ data.vehicle.model }}</p>
+                            <p style="text-align: center;">{{ data.model }}</p>
                         </td>
                         <td>
-                            <p style="text-align: center;">{{ data.vehicle.year }}</p>
+                            <p style="text-align: center;">{{ data.trim }}</p>
                         </td>
                         <td>
-                            <p style="text-align: center;">{{ data.vehicle.mileage }}</p>
+                            <p style="text-align: center;">{{ data.year }}</p>
                         </td>
                         <td>
-                            <p style="text-align: center;">{{ data.vehicle.vrm }}</p>
+                            <p style="text-align: center;">{{ data.mileage }}</p>
+                        </td>
+                        <td>
+                            <p style="text-align: center;">{{ data.vrm }}</p>
                         </td>
                     </tbody>
                 </table>
@@ -127,19 +131,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for key, value in data.parts.items %}
+                            {% for item in data.line_items %}
                             <tr>
                                 <td>
-                                    <p>{{value.description}}</p>
+                                    <p>{{item.description}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{value.qty}}</p>
+                                    <p style="text-align: center;">{{item.quantity}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{value.unit}}</p>
+                                    <p style="text-align: center;">{{item.unit_price}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{value.line}}</p>
+                                    <p style="text-align: center;">{{item.line_price}}</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -149,20 +153,20 @@
                                     <p><strong>Labour</strong></p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{data.labour.qty}}</p>
+                                    <p style="text-align: center;">{{data.labour_quantity}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{data.labour.unit}}</p>
+                                    <p style="text-align: center;">{{data.labour_unit}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{data.labour.qty}}</p>
+                                    <p style="text-align: center;">{{data.labour_total}}</p>
                                 </td>
                             </tr>
                             {% endif %}
                         </tbody>
                     </table>
                     <div style="text-align: right;">
-                        <p style="font-size: 13pt;"><strong>Total £<span>{{data.total}}</span></strong></p>
+                        <p style="font-size: 13pt;"><strong>Total £<span>{{data.invoice_total}}</span></strong></p>
                     </div>
                 </div>
             </div>

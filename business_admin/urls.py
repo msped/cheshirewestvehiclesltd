@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     CreateInvoice,
+    RetrieveUpdateDestroyInvoice,
     CreateListVehicle,
     CreateListGalleryItem,
     GetUpdateDeleteVehicle,
@@ -12,6 +13,7 @@ from .views import (
 
 urlpatterns = [
     path('invoice/', CreateInvoice.as_view(), name="create_invoice"),
+    path('invoice/<str:invoice_id>/', RetrieveUpdateDestroyInvoice.as_view(), name="get_invoice"),
     path('vehicle/', CreateListVehicle.as_view(), name="create_vehicle"),
     path('vehicle/<slug:slug>/', GetUpdateDeleteVehicle.as_view(), name="vehicle_options"),
     path(
