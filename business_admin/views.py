@@ -55,7 +55,7 @@ class CreateListVehicle(ListCreateAPIView):
 
 class CreateListGalleryItem(ListCreateAPIView):
     queryset = GalleryItem.objects.all()
-    pagination_class = 10
+    pagination_by = 10
     serializer_class = GallerySerializer
     permission_classes = [IsAdminUser]
 
