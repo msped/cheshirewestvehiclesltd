@@ -4,6 +4,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.utils.text import slugify
 
+from auditlog.registry import auditlog
+
 class Vehicle(models.Model):
     """Vehicle Model"""
     class Reserve(models.TextChoices):
@@ -114,3 +116,9 @@ class ReservationAmount(models.Model):
         if self.active:
             activity = "Active"
         return f'£{formatted_currency} - {activity}'
+
+auditlog.register(Vehicle)
+auditlog.register(VehicleImages)
+auditlog.register(Reservations)
+auditlog.register(TradeIn)
+auditlog.register(ReservationAmount)
