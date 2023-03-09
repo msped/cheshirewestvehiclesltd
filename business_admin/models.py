@@ -2,6 +2,7 @@ import datetime
 from django.utils import timezone
 from django.db import models
 
+from auditlog.registry import auditlog
 from phonenumber_field.modelfields import PhoneNumberField
 
 class Customer(models.Model):
@@ -110,3 +111,7 @@ class InvoiceItem(models.Model):
 
     def __str__(self):
         return f'{self.description} - £{self.line_price}'
+
+auditlog.register(Invoice, exclude_fields=['created_date'])
+auditlog.register(InvoiceItem)
+auditlog.register(Customer)
