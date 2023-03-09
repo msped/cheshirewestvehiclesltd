@@ -47,12 +47,14 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'django_filters',
+    'auditlog',
     'corsheaders',
     'accounts',
     'business_admin',
     'sales',
     'gallery',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg',
     'django_cleanup.apps.CleanupConfig',
 ]
 
@@ -65,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
