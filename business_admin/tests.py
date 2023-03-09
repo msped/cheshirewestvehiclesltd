@@ -462,6 +462,184 @@ class TestBusinessAdminInvoice(APITestCase):
             invoice_id=invoice.id
         ).exists())
 
+    def get_customer_using_customer_id(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/customer',
+            {
+                'search': customer.customer_id,
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            [{
+                "id": 1,
+                "customer_id": "230309001",
+                "first_name": "Elizabeth",
+                "last_name": "Windsor",
+                "phone_number": "07123 456789",
+                "email": "test@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA"
+            }]
+        )
+
+    def get_customer_using_name(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/customer',
+            {
+                'search': f'{customer.first_name} {customer.last_name}',
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            [{
+                "id": 1,
+                "customer_id": "230309001",
+                "first_name": "Elizabeth",
+                "last_name": "Windsor",
+                "phone_number": "07123 456789",
+                "email": "test@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA"
+            }]
+        )
+
+    def get_customer_using_email(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/customer',
+            {
+                'search': customer.email,
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            [{
+                "id": 1,
+                "customer_id": "230309001",
+                "first_name": "Elizabeth",
+                "last_name": "Windsor",
+                "phone_number": "07123 456789",
+                "email": "test@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA"
+            }]
+        )
+
+    def get_customer_using_phone_number(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/customer',
+            {
+                'search': str(customer.phone_number),
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            [{
+                "id": 1,
+                "customer_id": "230309001",
+                "first_name": "Elizabeth",
+                "last_name": "Windsor",
+                "phone_number": "07123 456789",
+                "email": "test@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA"
+            }]
+        )
+
+    def get_customer_doesnt_exist(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice/customer',
+            {
+                'search': '230427669',
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            []
+        )
+
     def sending_invoice_by_email_serializer_invalid(self):
         # Get access token
         access_request = self.client.post(
@@ -643,6 +821,11 @@ class TestBusinessAdminInvoice(APITestCase):
         self.sending_invoice_by_email_working()
         self.sending_invoice_by_email_working_no_line_items()
         self.sending_invoice_by_email_serializer_invalid()
+        self.get_customer_using_customer_id()
+        self.get_customer_using_name()
+        self.get_customer_using_email()
+        self.get_customer_using_phone_number()
+        self.get_customer_doesnt_exist()
         self.get_invoice_not_found()
         self.get_invoice_working()
         self.update_invoice_not_found()
