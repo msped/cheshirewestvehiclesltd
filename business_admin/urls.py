@@ -5,6 +5,7 @@ from .views import (
     RetrieveUpdateDestroyInvoice,
     CreateListVehicle,
     CreateListGalleryItem,
+    CustomerSearch,
     GetUpdateDeleteVehicle,
     GetUpdateDeleteGallery,
     DeleteGalleryImage,
@@ -14,6 +15,7 @@ from .views import (
 urlpatterns = [
     path('invoice/', CreateInvoice.as_view(), name="create_invoice"),
     path('invoice/<str:invoice_id>/', RetrieveUpdateDestroyInvoice.as_view(), name="get_invoice"),
+    path('invoice/customer', CustomerSearch.as_view(), name="get_customer"),
     path('vehicle/', CreateListVehicle.as_view(), name="create_vehicle"),
     path('vehicle/<slug:slug>/', GetUpdateDeleteVehicle.as_view(), name="vehicle_options"),
     path(
