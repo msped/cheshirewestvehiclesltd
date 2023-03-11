@@ -17,7 +17,7 @@ urlpatterns = [
     path('invoice/', CreateInvoice.as_view(), name="create_invoice"),
     path('invoice/<str:invoice_id>/', RetrieveUpdateDestroyInvoice.as_view(), name="get_invoice"),
     path('customer', CustomerSearch.as_view(), name="search_customer"),
-    path('customer/<str:customer_id>', CustomerView.as_view(), name="get_customer"),
+    path('customer/<str:customer_id>/', CustomerView.as_view(), name="get_customer"),
     path('vehicle/', CreateListVehicle.as_view(), name="create_vehicle"),
     path('vehicle/<slug:slug>/', GetUpdateDeleteVehicle.as_view(), name="vehicle_options"),
     path(
