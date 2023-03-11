@@ -1,9 +1,9 @@
+from django.db.models.deletion import ProtectedError
 from rest_framework import status, filters
 from rest_framework.generics import (
     DestroyAPIView,
     ListAPIView,
     ListCreateAPIView,
-    RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAdminUser
@@ -99,9 +99,22 @@ class CustomerSearch(ListAPIView):
         'email'
     ]
 
-class CustomerView(RetrieveAPIView):
-    serializer_class = CustomerInvoicesSerializer
+class CustomerView(RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
     permission_classes = [IsAdminUser]
     lookup_field = "customer_id"
     lookup_url_kwarg = "customer_id"
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return CustomerInvoicesSerializer
+        return CustomerSerializer
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"error": "Customer object cannot be deleted with Invoice objects still active."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
