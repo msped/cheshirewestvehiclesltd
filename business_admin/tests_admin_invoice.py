@@ -244,7 +244,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/invoice/customer',
+            '/api/admin/customer',
             {
                 'search': customer.customer_id,
             },
@@ -283,7 +283,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/invoice/customer',
+            '/api/admin/customer',
             {
                 'search': f'{customer.first_name} {customer.last_name}',
             },
@@ -322,7 +322,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/invoice/customer',
+            '/api/admin/customer',
             {
                 'search': customer.email,
             },
@@ -361,7 +361,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/invoice/customer',
+            '/api/admin/customer',
             {
                 'search': str(customer.phone_number),
             },
@@ -395,7 +395,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/invoice/customer',
+            '/api/admin/customer',
             {
                 'search': '230427669',
             },
@@ -465,6 +465,41 @@ class TestBusinessAdminInvoice(APITestCase):
                 "vrm": ["This field may not be blank."]
             }
         )
+
+    def get_customer(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        response = self.client.get(
+            f'/api/admin/customer/{customer.customer_id}',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def get_customer_doesnt_exist(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/customer/365735300',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 404)
 
     def get_invoice_not_found(self):
         access_request = self.client.post(
@@ -593,6 +628,8 @@ class TestBusinessAdminInvoice(APITestCase):
         self.search_customer_using_email()
         self.search_customer_using_phone_number()
         self.search_customer_doesnt_exist()
+        self.get_customer()
+        self.get_customer_doesnt_exist()
         self.get_invoice_not_found()
         self.get_invoice_working()
         self.update_invoice_not_found()
