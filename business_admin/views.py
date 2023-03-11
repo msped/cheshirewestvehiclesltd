@@ -98,3 +98,10 @@ class CustomerSearch(ListAPIView):
         'phone_number',
         'email'
     ]
+
+class CustomerView(RetrieveAPIView):
+    serializer_class = CustomerInvoicesSerializer
+    queryset = Customer.objects.all()
+    permission_classes = [IsAdminUser]
+    lookup_field = "customer_id"
+    lookup_url_kwarg = "customer_id"
