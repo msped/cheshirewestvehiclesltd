@@ -486,6 +486,91 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def update_customer(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        response = self.client.patch(
+            f'/api/admin/customer/{customer.customer_id}',
+            {
+                'email': 'test10@example.com'
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "id": 1,
+                "customer_id": "230311001",
+                "first_name": "Elizabeth",
+                "last_name": "Windsor",
+                "phone_number": "07123 456789",
+                "email": "test10@example.com",
+                "address_line_1": "1 The Mall",
+                "address_line_2": "",
+                "town_city": "Westminter",
+                "county": "London",
+                "postcode": "SW1A 1AA"
+            }
+        )
+
+    def destroy_customer_with_invoice_still_active(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test@example.com'
+        )
+        response = self.client.delete(
+            f'/api/admin/customer/{customer.customer_id}',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                'error': 'Customer object cannot be deleted with Invoice objects still active.'
+            }
+        )
+
+    def destroy_customer(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        access_token = access_request.data['access']
+        customer = Customer.objects.get(
+            first_name='Elizabeth',
+            last_name='Windsor',
+            email='test10@example.com'
+        )
+        response = self.client.delete(
+            f'/api/admin/customer/{customer.customer_id}',
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 204)
+
     def get_customer_doesnt_exist(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
@@ -629,6 +714,7 @@ class TestBusinessAdminInvoice(APITestCase):
         self.search_customer_using_phone_number()
         self.search_customer_doesnt_exist()
         self.get_customer()
+        self.destroy_customer_with_invoice_still_active()
         self.get_customer_doesnt_exist()
         self.get_invoice_not_found()
         self.get_invoice_working()
@@ -636,3 +722,5 @@ class TestBusinessAdminInvoice(APITestCase):
         self.update_invoice_working()
         self.destroy_invoice_not_found()
         self.destroy_invoice_working()
+        self.update_customer()
+        self.destroy_customer()
