@@ -1,7 +1,9 @@
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.generics import (
     DestroyAPIView,
+    ListAPIView,
     ListCreateAPIView,
+    RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework.permissions import IsAdminUser
@@ -15,8 +17,8 @@ from sales.serializers import (
     VehicleSerializer,
     VehicleImagesSerializer
 )
-from .models import Invoice
-from .serializers import InvoiceSerializer
+from .models import Invoice, Customer
+from .serializers import InvoiceSerializer, CustomerSerializer, CustomerInvoicesSerializer
 from .utils import invoice_handler
 
 # Create your views here.
@@ -82,3 +84,24 @@ class DeleteGalleryImage(DestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = GalleryImage.objects.all()
     lookup_url_kwarg = 'object_id'
+
+class CustomerSearch(ListAPIView):
+    permission_classes = [IsAdminUser]
+    pagination_class = None
+    serializer_class = CustomerSerializer
+    queryset = Customer.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'customer_id',
+        'first_name',
+        'last_name',
+        'phone_number',
+        'email'
+    ]
+
+class CustomerView(RetrieveAPIView):
+    serializer_class = CustomerInvoicesSerializer
+    queryset = Customer.objects.all()
+    permission_classes = [IsAdminUser]
+    lookup_field = "customer_id"
+    lookup_url_kwarg = "customer_id"

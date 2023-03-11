@@ -105,3 +105,28 @@ class InvoiceSerializer(serializers.ModelSerializer):
                 )
         super().update(instance, validated_data)
         return instance
+
+class CustomerInvoicesSerializer(serializers.ModelSerializer):
+    invoices = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Customer
+        fields = [
+            'id',
+            'customer_id',
+            'first_name',
+            'last_name',
+            'phone_number',
+            'email',
+            'address_line_1',
+            'address_line_2',
+            'town_city',
+            'county',
+            'postcode',
+            'invoices'
+        ]
+
+    def get_invoices(self, obj):
+        data = Invoice.objects.filter(customer__customer_id=obj.customer_id)
+        serializer = InvoiceSerializer(data, many=True)
+        return serializer.data
