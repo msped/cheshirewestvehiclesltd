@@ -23,7 +23,7 @@ from .utils import invoice_handler
 
 # Create your views here.
 
-class CreateInvoice(APIView):
+class InvoiceView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request):
