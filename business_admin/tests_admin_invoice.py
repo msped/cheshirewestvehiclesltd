@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import shutil
 import tempfile
@@ -228,6 +229,217 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertFalse(InvoiceItem.objects.filter(
             invoice_id=invoice.id
         ).exists())
+
+    def search_invoice_using_invoice_id(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice',
+            {
+                'search': invoice.invoice_id,
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "id": 1,
+                        "invoice_id": invoice.invoice_id,
+                        "created_date": f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
+                        "customer": {
+                            "id": 1,
+                            "customer_id": invoice.customer.customer_id,
+                            "first_name": "Elizabeth",
+                            "last_name": "Windsor",
+                            "phone_number": "07123 456789",
+                            "email": "test@example.com",
+                            "address_line_1": "1 The Mall",
+                            "address_line_2": "",
+                            "town_city": "Westminter",
+                            "county": "London",
+                            "postcode": "SW1A 1AA"
+                        },
+                        "make": "Land Rover",
+                        "model": "Defender",
+                        "trim": "110",
+                        "year": 2021,
+                        "mileage": 250,
+                        "vrm": "B16 LIZ",
+                        "labour_quantity": 10,
+                        "labour_unit": "15.00",
+                        "labour_total": "150.00",
+                        "line_items": [
+                            {
+                                "id": 1,
+                                "invoice": 1,
+                                "description": "Oil Change",
+                                "quantity": 1,
+                                "unit_price": "25.00",
+                                "line_price": "25.00"
+                            },
+                            {
+                                "id": 2,
+                                "invoice": 1,
+                                "description": "Air Filter Change",
+                                "quantity": 1,
+                                "unit_price": "15.00",
+                                "line_price": "15.00"
+                            }
+                        ],
+                        "invoice_total": "190.00",
+                        "comments": "Testing sending of pdf email"
+                    }
+                ]
+            }
+        )
+
+    def search_invoice_using_created_date(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice',
+            {
+                'search': f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def search_invoice_using_vrm(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice',
+            {
+                'search': invoice.vrm,
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "id": 1,
+                        "invoice_id": invoice.invoice_id,
+                        "created_date": f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
+                        "customer": {
+                            "id": 1,
+                            "customer_id": invoice.customer.customer_id,
+                            "first_name": "Elizabeth",
+                            "last_name": "Windsor",
+                            "phone_number": "07123 456789",
+                            "email": "test@example.com",
+                            "address_line_1": "1 The Mall",
+                            "address_line_2": "",
+                            "town_city": "Westminter",
+                            "county": "London",
+                            "postcode": "SW1A 1AA"
+                        },
+                        "make": "Land Rover",
+                        "model": "Defender",
+                        "trim": "110",
+                        "year": 2021,
+                        "mileage": 250,
+                        "vrm": "B16 LIZ",
+                        "labour_quantity": 10,
+                        "labour_unit": "15.00",
+                        "labour_total": "150.00",
+                        "line_items": [
+                            {
+                                "id": 1,
+                                "invoice": 1,
+                                "description": "Oil Change",
+                                "quantity": 1,
+                                "unit_price": "25.00",
+                                "line_price": "25.00"
+                            },
+                            {
+                                "id": 2,
+                                "invoice": 1,
+                                "description": "Air Filter Change",
+                                "quantity": 1,
+                                "unit_price": "15.00",
+                                "line_price": "15.00"
+                            }
+                        ],
+                        "invoice_total": "190.00",
+                        "comments": "Testing sending of pdf email"
+                    }
+                ]
+            }
+        )
+
+    def search_invoice_doesnt_exist(self):
+        access_request = self.client.post(
+            '/api/auth/jwt/create/',
+            {
+                'username': 'admin',
+                'password': 'TestP455word!'
+            }
+        )
+
+        access_token = access_request.data['access']
+        response = self.client.get(
+            '/api/admin/invoice',
+            {
+                'search': "9999999999",
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content),
+            {
+                "count": 0,
+                "next": None,
+                "previous": None,
+                "results": []
+            }
+        )
 
     def search_customer_using_customer_id(self):
         access_request = self.client.post(
@@ -708,6 +920,10 @@ class TestBusinessAdminInvoice(APITestCase):
         self.sending_invoice_by_email_working()
         self.sending_invoice_by_email_working_no_line_items()
         self.sending_invoice_by_email_serializer_invalid()
+        self.search_invoice_using_invoice_id()
+        self.search_invoice_using_created_date()
+        self.search_invoice_using_vrm()
+        self.search_invoice_doesnt_exist()
         self.search_customer_using_customer_id()
         self.search_customer_using_name()
         self.search_customer_using_email()
