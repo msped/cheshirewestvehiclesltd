@@ -42,6 +42,18 @@ class InvoiceView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+class InvoiceSearch(ListAPIView):
+    permission_classes = [IsAdminUser]
+    pagination_by = 10
+    serializer_class = InvoiceSerializer
+    queryset = Invoice.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'invoice_id',
+        'created_date',
+        'vrm'
+    ]
+
 class RetrieveUpdateDestroyInvoice(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Invoice.objects.all()
