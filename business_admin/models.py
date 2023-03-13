@@ -34,9 +34,9 @@ class Customer(models.Model):
                 customer_id__startswith=today_string
             ).order_by('customer_id').last()
             if last_customer:
-                last_customer_number = int(last_customer.customer_id[6:])
-                next_customer_number = '{0:03d}1'.format(last_customer_number + 1)
-            self.customer_id = today_string + next_customer_number
+                last_customer_number = int(last_customer.customer_id[7:])
+                next_customer_number = '{0:03d}'.format(last_customer_number + 1)
+            self.customer_id = today_string + "1" + next_customer_number
         super(Customer, self).save(*args, **kwargs)
 
 class Invoice(models.Model):
@@ -89,9 +89,9 @@ class Invoice(models.Model):
                 invoice_id__startswith=today_string
             ).order_by('invoice_id').last()
             if last_invoice:
-                last_invoice_number = int(last_invoice.invoice_id[6:])
-                next_invoice_number = '{0:03d}2'.format(last_invoice_number + 1)
-            self.invoice_id = today_string + next_invoice_number
+                last_invoice_number = int(last_invoice.invoice_id[7:])
+                next_invoice_number = '{0:03d}'.format(last_invoice_number + 1)
+            self.invoice_id = today_string + "2" + next_invoice_number
         self.labour_total = self.get_labour_total()
         super(Invoice, self).save(*args, **kwargs)
 
