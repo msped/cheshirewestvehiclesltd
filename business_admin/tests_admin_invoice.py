@@ -481,7 +481,7 @@ class TestBusinessAdminInvoice(APITestCase):
             email='test@example.com'
         )
         response = self.client.get(
-            f'/api/admin/customer/{customer.customer_id}',
+            f'/api/admin/customer/{customer.customer_id}/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 200)
@@ -501,7 +501,7 @@ class TestBusinessAdminInvoice(APITestCase):
             email='test@example.com'
         )
         response = self.client.patch(
-            f'/api/admin/customer/{customer.customer_id}',
+            f'/api/admin/customer/{customer.customer_id}/',
             {
                 'email': 'test10@example.com'
             },
@@ -512,7 +512,7 @@ class TestBusinessAdminInvoice(APITestCase):
             json.loads(response.content),
             {
                 "id": 1,
-                "customer_id": "230311001",
+                "customer_id": customer.customer_id,
                 "first_name": "Elizabeth",
                 "last_name": "Windsor",
                 "phone_number": "07123 456789",
@@ -540,7 +540,7 @@ class TestBusinessAdminInvoice(APITestCase):
             email='test@example.com'
         )
         response = self.client.delete(
-            f'/api/admin/customer/{customer.customer_id}',
+            f'/api/admin/customer/{customer.customer_id}/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 400)
@@ -566,7 +566,7 @@ class TestBusinessAdminInvoice(APITestCase):
             email='test10@example.com'
         )
         response = self.client.delete(
-            f'/api/admin/customer/{customer.customer_id}',
+            f'/api/admin/customer/{customer.customer_id}/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 204)
@@ -581,7 +581,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         access_token = access_request.data['access']
         response = self.client.get(
-            '/api/admin/customer/365735300',
+            '/api/admin/customer/365735300/',
             **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
         )
         self.assertEqual(response.status_code, 404)
