@@ -1,4 +1,5 @@
 import datetime
+import decimal
 from django.utils import timezone
 from django.db import models
 
@@ -79,6 +80,9 @@ class Invoice(models.Model):
             for item in items:
                 total += item.line_price
         total += self.get_labour_total()
+        if total != 0:
+            self.vat = total * decimal.Decimal(0.2)
+        total += self.vat
         return round(total, 2)
 
     def save(self, *args, **kwargs):
