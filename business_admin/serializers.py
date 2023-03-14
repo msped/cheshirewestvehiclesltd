@@ -55,6 +55,11 @@ class InvoiceSerializer(serializers.ModelSerializer):
         decimal_places=2,
         required=False
     )
+    vat = serializers.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        required=False
+    )
     invoice_total = serializers.DecimalField(
         max_digits=6,
         decimal_places=2,
@@ -78,6 +83,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'labour_unit',
             'labour_total',
             'line_items',
+            'vat',
             'invoice_total',
             'comments',
             'new_line_items'
