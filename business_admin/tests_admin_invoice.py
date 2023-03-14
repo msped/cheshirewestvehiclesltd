@@ -29,8 +29,7 @@ class TestBusinessAdminInvoice(APITestCase):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def sending_invoice_by_email_working(self):
-        # Get access token
+    def get_access_token(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -38,8 +37,9 @@ class TestBusinessAdminInvoice(APITestCase):
                 'password': 'TestP455word!'
             }
         )
-        access_token = access_request.data['access']
+        return access_request.data['access']
 
+    def sending_invoice_by_email_working(self):
         # Check customer isn't already in the DB
         self.assertFalse(Customer.objects.filter(
             first_name="Elizabeth",
@@ -86,7 +86,7 @@ class TestBusinessAdminInvoice(APITestCase):
                 "comments": "Testing sending of pdf email",
             },
             format="json",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
 
         # Check Page Response
@@ -122,7 +122,7 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertEqual(invoice.labour_quantity, 10.00)
         self.assertEqual(invoice.labour_unit, 15.00)
         self.assertEqual(invoice.labour_total, 150.00)
-        self.assertEqual(invoice.invoice_total, 190.00)
+        self.assertEqual(invoice.invoice_total, 228.00)
         self.assertEqual(invoice.comments, "Testing sending of pdf email")
 
         # Check both line items exists in DB
@@ -141,16 +141,6 @@ class TestBusinessAdminInvoice(APITestCase):
         ).exists())
 
     def sending_invoice_by_email_working_no_line_items(self):
-        # Get access token
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
-
         # Check customer isn't already in the DB
         self.assertFalse(Customer.objects.filter(
             first_name="John",
@@ -185,7 +175,7 @@ class TestBusinessAdminInvoice(APITestCase):
                 "comments": "Testing sending of pdf email without line items",
             },
             format='json',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
 
         # Check Page Response
@@ -221,7 +211,7 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertEqual(invoice.labour_quantity, 1)
         self.assertEqual(invoice.labour_unit, 15.00)
         self.assertEqual(invoice.labour_total, 15.00)
-        self.assertEqual(invoice.invoice_total, 15.00)
+        self.assertEqual(invoice.invoice_total, 18.00)
         self.assertEqual(invoice.comments, "Testing sending of pdf email without line items")
 
         # Check no line items exist in DB
@@ -230,25 +220,17 @@ class TestBusinessAdminInvoice(APITestCase):
         ).exists())
 
     def search_invoice_using_invoice_id(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         invoice = Invoice.objects.get(
             customer__first_name='Elizabeth',
             customer__last_name='Windsor',
             customer__email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice',
             {
                 'search': invoice.invoice_id,
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -302,7 +284,8 @@ class TestBusinessAdminInvoice(APITestCase):
                                 "line_price": "15.00"
                             }
                         ],
-                        "invoice_total": "190.00",
+                        "vat": "38.00",
+                        "invoice_total": "228.00",
                         "comments": "Testing sending of pdf email"
                     }
                 ]
@@ -310,48 +293,33 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_invoice_using_created_date(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         invoice = Invoice.objects.get(
             customer__first_name='Elizabeth',
             customer__last_name='Windsor',
             customer__email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice',
             {
                 'search': f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
     def search_invoice_using_vrm(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         invoice = Invoice.objects.get(
             customer__first_name='Elizabeth',
             customer__last_name='Windsor',
             customer__email='test@example.com'
         )
-        access_token = access_request.data['access']
+
         response = self.client.get(
             '/api/admin/invoice',
             {
                 'search': invoice.vrm,
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -405,7 +373,8 @@ class TestBusinessAdminInvoice(APITestCase):
                                 "line_price": "15.00"
                             }
                         ],
-                        "invoice_total": "190.00",
+                        "vat": "38.00",
+                        "invoice_total": "228.00",
                         "comments": "Testing sending of pdf email"
                     }
                 ]
@@ -413,21 +382,12 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_invoice_doesnt_exist(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice',
             {
                 'search': "9999999999",
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -441,25 +401,17 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_customer_using_customer_id(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
             email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer',
             {
                 'search': customer.customer_id,
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -480,25 +432,17 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_customer_using_name(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
             email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer',
             {
                 'search': f'{customer.first_name} {customer.last_name}',
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -519,25 +463,17 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_customer_using_email(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
             email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer',
             {
                 'search': customer.email,
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -558,25 +494,17 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_customer_using_phone_number(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
             email='test@example.com'
         )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer',
             {
                 'search': str(customer.phone_number),
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -597,20 +525,12 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def search_customer_doesnt_exist(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer',
             {
                 'search': '230427669',
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -620,14 +540,6 @@ class TestBusinessAdminInvoice(APITestCase):
 
     def sending_invoice_by_email_serializer_invalid(self):
         # Get access token
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
 
         # Send post to create invoice
         response = self.client.post(
@@ -667,7 +579,7 @@ class TestBusinessAdminInvoice(APITestCase):
                 "comments": "Testing sending of pdf email",
             },
             format='json',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -678,14 +590,6 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def get_customer(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
@@ -693,19 +597,11 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         response = self.client.get(
             f'/api/admin/customer/{customer.customer_id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
     def update_customer(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
@@ -716,7 +612,7 @@ class TestBusinessAdminInvoice(APITestCase):
             {
                 'email': 'test10@example.com'
             },
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -737,14 +633,6 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def destroy_customer_with_invoice_still_active(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
@@ -752,7 +640,7 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         response = self.client.delete(
             f'/api/admin/customer/{customer.customer_id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -763,14 +651,6 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def destroy_customer(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         customer = Customer.objects.get(
             first_name='Elizabeth',
             last_name='Windsor',
@@ -778,80 +658,40 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         response = self.client.delete(
             f'/api/admin/customer/{customer.customer_id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
 
     def get_customer_doesnt_exist(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/customer/365735300/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 404)
 
     def get_invoice_not_found(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice/36573523/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 404)
 
     def get_invoice_working(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         invoice = Invoice.objects.get(customer__first_name="Elizabeth")
         response = self.client.get(
             f'/api/admin/invoice/{invoice.invoice_id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
     def update_invoice_not_found(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice/675487644/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 404)
 
     def update_invoice_working(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         invoice = Invoice.objects.get(customer__first_name="Elizabeth")
 
         # Check only two original line items
@@ -874,7 +714,7 @@ class TestBusinessAdminInvoice(APITestCase):
                 ]
             },
             format="json",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -885,33 +725,17 @@ class TestBusinessAdminInvoice(APITestCase):
         )
 
     def destroy_invoice_not_found(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/invoice/8789456345/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 404)
 
     def destroy_invoice_working(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         invoice = Invoice.objects.get(customer__first_name="Elizabeth")
         response = self.client.delete(
             f'/api/admin/invoice/{invoice.invoice_id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
 

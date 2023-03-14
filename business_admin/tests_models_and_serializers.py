@@ -56,6 +56,7 @@ class TestInvoiceModelsAndSerializers(APITestCase):
             labour_quantity=1,
             labour_unit=25.00,
             labour_total=25.00,
+            vat=4.00,
             invoice_total=25.00,
             comments="test"
         )
@@ -227,7 +228,7 @@ class TestInvoiceModelsAndSerializers(APITestCase):
             mileage=72000,
             vrm="DK19 CLX"
         )
-        self.assertEqual(invoice.get_total(), 45.00)
+        self.assertEqual(invoice.get_total(), 54.00)
 
     def test_in_order(self):
         self.customer_serializer_working()

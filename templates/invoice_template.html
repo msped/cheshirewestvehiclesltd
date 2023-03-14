@@ -140,10 +140,10 @@
                                     <p style="text-align: center;">{{item.quantity}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{item.unit_price}}</p>
+                                    <p style="text-align: center;">£{{item.unit_price}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{item.line_price}}</p>
+                                    <p style="text-align: center;">£{{item.line_price}}</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -156,17 +156,20 @@
                                     <p style="text-align: center;">{{data.labour_quantity}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{data.labour_unit}}</p>
+                                    <p style="text-align: center;">£{{data.labour_unit}}</p>
                                 </td>
                                 <td>
-                                    <p style="text-align: center;">{{data.labour_total}}</p>
+                                    <p style="text-align: center;">£{{data.labour_total}}</p>
                                 </td>
                             </tr>
                             {% endif %}
                         </tbody>
                     </table>
                     <div style="text-align: right;">
-                        <p style="font-size: 13pt;"><strong>Total £<span>{{data.invoice_total}}</span></strong></p>
+                        <p style="font-size: 13pt;"><strong>VAT: £<span>{{data.vat}}</span></strong></p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 13pt;"><strong>Total: £<span>{{data.invoice_total}}</span></strong></p>
                     </div>
                 </div>
             </div>

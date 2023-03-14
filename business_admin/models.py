@@ -1,4 +1,5 @@
 import datetime
+import decimal
 from django.utils import timezone
 from django.db import models
 
@@ -60,6 +61,7 @@ class Invoice(models.Model):
     vrm=models.CharField(max_length=10)
     labour_quantity=models.IntegerField(default=0)
     labour_unit=models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    vat=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     labour_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     invoice_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     comments=models.TextField(null=True, blank=True)
@@ -78,6 +80,9 @@ class Invoice(models.Model):
             for item in items:
                 total += item.line_price
         total += self.get_labour_total()
+        if total != 0:
+            self.vat = total * decimal.Decimal(0.2)
+        total += self.vat
         return round(total, 2)
 
     def save(self, *args, **kwargs):
