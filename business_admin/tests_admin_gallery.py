@@ -37,7 +37,7 @@ class TestBusinessAdminGallery(APITestCase):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def create_gallery_no_images(self):
+    def get_access_token(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -45,7 +45,9 @@ class TestBusinessAdminGallery(APITestCase):
                 'password': 'TestP455word!'
             }
         )
-        access_token = access_request.data['access']
+        return access_request.data['access']
+
+    def create_gallery_no_images(self):
         response = self.client.post(
             '/api/admin/gallery/',
             {
@@ -58,19 +60,11 @@ class TestBusinessAdminGallery(APITestCase):
                 "uploaded_images": []
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 201)
 
     def create_gallery_with_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.post(
             '/api/admin/gallery/',
             {
@@ -86,7 +80,7 @@ class TestBusinessAdminGallery(APITestCase):
                 ]
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 201)
         gallery = GalleryItem.objects.get(
@@ -110,19 +104,11 @@ class TestBusinessAdminGallery(APITestCase):
         access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/gallery/ford-fiesta-st-2019/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
     def update_gallery_with_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         gallery = GalleryItem.objects.get(
             make="Nissan",
             model="Skyline",
@@ -144,7 +130,7 @@ class TestBusinessAdminGallery(APITestCase):
                 ]
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(GalleryImage.objects.filter(
@@ -152,14 +138,6 @@ class TestBusinessAdminGallery(APITestCase):
         ).count(), 4)
 
     def update_gallery_without_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         gallery = GalleryItem.objects.get(
             make="Nissan",
             model="Skyline",
@@ -178,7 +156,7 @@ class TestBusinessAdminGallery(APITestCase):
                 "uploaded_images": []
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(GalleryImage.objects.filter(
@@ -189,20 +167,12 @@ class TestBusinessAdminGallery(APITestCase):
         self.assertEqual(json_response['description'], 'A proper description')
 
     def delete_gallery_image(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         image = GalleryImage.objects.filter(
             item__slug="nissan-skyline-gtr-v-spec-2000"
         ).first()
         response = self.client.delete(
             f'/api/admin/gallery/image/{image.id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
         self.assertEqual(GalleryImage.objects.filter(
@@ -220,7 +190,7 @@ class TestBusinessAdminGallery(APITestCase):
         access_token = access_request.data['access']
         response = self.client.delete(
             '/api/admin/gallery/ford-fiesta-st-2019/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
 
