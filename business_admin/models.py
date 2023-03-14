@@ -60,6 +60,7 @@ class Invoice(models.Model):
     vrm=models.CharField(max_length=10)
     labour_quantity=models.IntegerField(default=0)
     labour_unit=models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    vat=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     labour_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     invoice_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     comments=models.TextField(null=True, blank=True)
