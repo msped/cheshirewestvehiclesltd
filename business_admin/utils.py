@@ -21,18 +21,21 @@ def render_to_pdf(template, data=None):
         return None
     return HttpResponse(result.getvalue(), content_type="application/pdf")
 
-def invoice_handler(data):
+def invoice_handler(data, extra_emails=None):
     pdf = render_to_pdf(
         "invoice_template.html",
         {'data': data}
     )
     if pdf:
+        recipients = [data["customer"]["email"]]
+        if extra_emails:
+            recipients.append(extra_emails)
         message = "Hello,\n\nPlease see attached invoice for services by Cheshire West Vehicles.\
             \n\nMany Thanks,\n\nCheshireWestVehicles"
         email = EmailMessage(
             "Invoice for Services | Cheshire West Vehicles",
             message, "info@cheshirewestvehicles.co.uk",
-            [data["customer"]["email"]]
+            to=recipients
         )
         email.attach("invoice.pdf", pdf.getvalue(), "application/pdf")
         email.send()
