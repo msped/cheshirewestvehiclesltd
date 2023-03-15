@@ -3,6 +3,15 @@ from rest_framework import serializers
 from .models import Invoice, InvoiceItem, Customer
 from .utils import get_customer
 
+# pylint: disable=W0223
+
+class ResendInvoiceSerializer(serializers.Serializer):
+    emails = serializers.ListField(
+        child=serializers.EmailField(),
+        write_only=True,
+        required=False
+    )
+
 class CustomerSerializer(serializers.ModelSerializer):
     customer_id = serializers.ReadOnlyField()
 
