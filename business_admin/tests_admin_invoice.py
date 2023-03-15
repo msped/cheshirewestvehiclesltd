@@ -292,6 +292,48 @@ class TestBusinessAdminInvoice(APITestCase):
             }
         )
 
+    def resending_invoice_standard_recepient(self):
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        response = self.client.post(
+            f'/api/admin/invoice/{invoice.invoice_id}/send/',
+            {
+                'emails': []
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def resending_invoice_extra_emails(self):
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        response = self.client.post(
+            f'/api/admin/invoice/{invoice.invoice_id}/send/',
+            {
+                'emails': ['matt@mspe.me']
+            },
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def resending_invoice_invalid_email_serializer(self):
+        invoice = Invoice.objects.get(
+            customer__first_name='Elizabeth',
+            customer__last_name='Windsor',
+            customer__email='test@example.com'
+        )
+        response = self.client.post(
+            f'/api/admin/invoice/{invoice.invoice_id}/send/',
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
+        )
+        self.assertEqual(response.status_code, 400)
+
     def search_invoice_using_created_date(self):
         invoice = Invoice.objects.get(
             customer__first_name='Elizabeth',
@@ -743,6 +785,9 @@ class TestBusinessAdminInvoice(APITestCase):
         self.sending_invoice_by_email_working()
         self.sending_invoice_by_email_working_no_line_items()
         self.sending_invoice_by_email_serializer_invalid()
+        self.resending_invoice_standard_recepient()
+        self.resending_invoice_extra_emails()
+        self.resending_invoice_invalid_email_serializer()
         self.search_invoice_using_invoice_id()
         self.search_invoice_using_created_date()
         self.search_invoice_using_vrm()
