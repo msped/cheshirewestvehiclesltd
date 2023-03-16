@@ -9,7 +9,7 @@ class ResendInvoiceSerializer(serializers.Serializer):
     emails = serializers.ListField(
         child=serializers.EmailField(),
         write_only=True,
-        required=False
+        required=True
     )
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -74,6 +74,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         decimal_places=2,
         required=False
     )
+    audit_log = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
@@ -95,8 +96,13 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'vat',
             'invoice_total',
             'comments',
-            'new_line_items'
+            'new_line_items',
+            'audit_log'
         ]
+
+    def get_audit_log(self, obj):
+        #print(f"Log {obj.invoice_id}", obj.audit_log.latest().changes_dict)
+        return obj.audit_log.latest().changes_dict
 
     def create(self, validated_data):
         customer = get_customer(validated_data.pop('customer'))
