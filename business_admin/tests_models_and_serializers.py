@@ -10,7 +10,8 @@ from .models import Customer, InvoiceItem, Invoice
 from .serializers import (
     InvoiceItemSerializer,
     InvoiceSerializer,
-    CustomerSerializer
+    CustomerSerializer,
+    ResendInvoiceSerializer
 )
 from .utils import get_customer
 
@@ -137,6 +138,20 @@ class TestInvoiceModelsAndSerializers(APITestCase):
         serializer = InvoiceSerializer(data=data, many=False)
         self.assertTrue(serializer.is_valid())
 
+    def resend_invoice_serializer_working(self):
+        data = {
+            "emails": ['matt@mspe.me', 'test@example.com']
+        }
+        serializer = ResendInvoiceSerializer(data=data, many=False)
+        self.assertTrue(serializer.is_valid())
+
+    def resend_invoice_serializer_not_working(self):
+        data = {
+            "emails": []
+        }
+        serializer = ResendInvoiceSerializer(data=data, many=False)
+        self.assertFalse(serializer.is_valid())
+
     def get_customer_in_database(self):
         customer = Customer.objects.get(
             first_name="Cameron",
@@ -234,6 +249,8 @@ class TestInvoiceModelsAndSerializers(APITestCase):
         self.customer_serializer_working()
         self.invoice_item_serializer_working()
         self.invoice_serializer_working()
+        self.resend_invoice_serializer_working()
+        self.resend_invoice_serializer_not_working()
         self.get_customer_in_database()
         self.get_customer_not_in_database()
         self.customer_str()
