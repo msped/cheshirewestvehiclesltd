@@ -9,7 +9,8 @@ class ResendInvoiceSerializer(serializers.Serializer):
     emails = serializers.ListField(
         child=serializers.EmailField(),
         write_only=True,
-        required=True
+        required=True,
+        allow_empty=False
     )
 
 class CustomerSerializer(serializers.ModelSerializer):
