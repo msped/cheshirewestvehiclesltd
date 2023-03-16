@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    SendInvoice,
     InvoiceSearch,
     InvoiceView,
     RetrieveUpdateDestroyInvoice,
@@ -18,6 +19,7 @@ urlpatterns = [
     path('invoice', InvoiceSearch.as_view(), name="search_invoice"),
     path('invoice/', InvoiceView.as_view(), name="create_invoice"),
     path('invoice/<str:invoice_id>/', RetrieveUpdateDestroyInvoice.as_view(), name="get_invoice"),
+    path('invoice/<str:invoice_id>/send/', SendInvoice.as_view(), name="send_invoice"),
     path('customer', CustomerSearch.as_view(), name="search_customer"),
     path('customer/<str:customer_id>/', CustomerView.as_view(), name="get_customer"),
     path('vehicle/', CreateListVehicle.as_view(), name="create_vehicle"),

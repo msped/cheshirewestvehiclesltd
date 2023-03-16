@@ -31,13 +31,8 @@ class TestBusinessAdminVehicle(APITestCase):
         image.save(tmp_file, 'jpeg')
         tmp_file.seek(0)
         return tmp_file
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
-        super().tearDownClass()
-
-    def create_vehicle_no_images(self):
+    
+    def get_access_token(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',
             {
@@ -45,7 +40,14 @@ class TestBusinessAdminVehicle(APITestCase):
                 'password': 'TestP455word!'
             }
         )
-        access_token = access_request.data['access']
+        return access_request.data['access']
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
+    def create_vehicle_no_images(self):
         response = self.client.post(
             '/api/admin/vehicle/',
             {
@@ -65,19 +67,11 @@ class TestBusinessAdminVehicle(APITestCase):
                 "uploaded_images": []
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 201)
 
     def create_vehicle_with_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.post(
             '/api/admin/vehicle/',
             {
@@ -101,7 +95,7 @@ class TestBusinessAdminVehicle(APITestCase):
                 ]
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 201)
         vehicle = Vehicle.objects.get(
@@ -116,29 +110,13 @@ class TestBusinessAdminVehicle(APITestCase):
         ).count(), 2)
 
     def get_vehicle(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/vehicle/bmw-5-series-m-2018/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
     def update_vehicle_with_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         vehicle = Vehicle.objects.get(
             make="BMW",
             model="5 Series",
@@ -168,7 +146,7 @@ class TestBusinessAdminVehicle(APITestCase):
                 ]
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(VehicleImages.objects.filter(
@@ -176,14 +154,6 @@ class TestBusinessAdminVehicle(APITestCase):
         ).count(), 4)
 
     def update_vehicle_without_images(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         vehicle = Vehicle.objects.get(
             make="BMW",
             model="5 Series",
@@ -210,7 +180,7 @@ class TestBusinessAdminVehicle(APITestCase):
                 'uploaded_images': []
             },
             format="multipart",
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(VehicleImages.objects.filter(
@@ -222,20 +192,12 @@ class TestBusinessAdminVehicle(APITestCase):
         self.assertEqual(json_response['extras'], 'Test M3')
 
     def delete_vehicle_image(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         image = VehicleImages.objects.filter(
             vehicle__slug="bmw-3-series-m-2018"
         ).first()
         response = self.client.delete(
             f'/api/admin/vehicle/image/{image.id}/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
         self.assertEqual(VehicleImages.objects.filter(
@@ -243,17 +205,9 @@ class TestBusinessAdminVehicle(APITestCase):
         ).count(), 3)
 
     def delete_vehicle(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.delete(
             '/api/admin/vehicle/bmw-3-series-m-2018/',
-            **{'HTTP_AUTHORIZATION': f'Bearer {access_token}'}
+            **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 204)
 

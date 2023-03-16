@@ -3,6 +3,7 @@ import decimal
 from django.utils import timezone
 from django.db import models
 
+from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -65,6 +66,7 @@ class Invoice(models.Model):
     labour_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     invoice_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
     comments=models.TextField(null=True, blank=True)
+    audit_log = AuditlogHistoryField()
 
     def __str__(self):
         return f'{self.invoice_id} - {self.vrm}'
@@ -117,6 +119,12 @@ class InvoiceItem(models.Model):
     def __str__(self):
         return f'{self.description} - £{self.line_price}'
 
-auditlog.register(Invoice, exclude_fields=['created_date'])
-auditlog.register(InvoiceItem)
+auditlog.register(Invoice, exclude_fields=[
+        'created_date',
+        'vat',
+        'invoice_total',
+        'labour_total'
+    ]
+)
+auditlog.register(InvoiceItem, exclude_fields=['line_price'])
 auditlog.register(Customer)
