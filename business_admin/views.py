@@ -1,4 +1,8 @@
+import json
+
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.deletion import ProtectedError
+from django.shortcuts import get_object_or_404
 from rest_framework import status, filters
 from rest_framework.generics import (
     DestroyAPIView,
@@ -10,6 +14,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from auditlog.models import LogEntry
+
 from gallery.models import GalleryItem, GalleryImage
 from gallery.serializers import GallerySerializer, GalleryImageSerializer
 from sales.models import Vehicle, VehicleImages
@@ -17,11 +23,48 @@ from sales.serializers import (
     VehicleSerializer,
     VehicleImagesSerializer
 )
+
 from .models import Invoice, Customer
-from .serializers import InvoiceSerializer, CustomerSerializer, CustomerInvoicesSerializer
+from .serializers import (
+    InvoiceSerializer,
+    CustomerSerializer,
+    CustomerInvoicesSerializer,
+    ResendInvoiceSerializer
+)
 from .utils import invoice_handler
 
 # Create your views here.
+
+class SendInvoice(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, invoice_id):
+        email_serializer = ResendInvoiceSerializer(data=request.data, many=False)
+        if email_serializer.is_valid():
+            invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
+            invoice_serializer = InvoiceSerializer(invoice, many=False)
+            send_email = invoice_handler(
+                invoice_serializer.data,
+                extra_emails=email_serializer.data
+            )
+            if send_email:
+                LogEntry.objects.create(
+                    actor_id=request.user.id,
+                    content_type_id=ContentType.objects.get_for_model(invoice).pk,
+                    object_id=invoice.id,
+                    object_pk=invoice,
+                    object_repr=str(invoice),
+                action=1, # 1 is update
+                    changes=json.dumps({
+                        "sent_to": email_serializer.data
+                    }),
+                )
+                return Response(status=status.HTTP_200_OK)
+            return Response(
+                {"error": "Couldn't render data into PDF file."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(email_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class InvoiceView(APIView):
     permission_classes = [IsAdminUser]
