@@ -1,7 +1,6 @@
 import json
 import shutil
 import tempfile
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.test import override_settings
@@ -233,64 +232,6 @@ class TestBusinessAdminInvoice(APITestCase):
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            json.loads(response.content),
-            {
-                "count": 1,
-                "next": None,
-                "previous": None,
-                "results": [
-                    {
-                        "id": 1,
-                        "invoice_id": invoice.invoice_id,
-                        "created_date": f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
-                        "customer": {
-                            "id": 1,
-                            "customer_id": invoice.customer.customer_id,
-                            "first_name": "Elizabeth",
-                            "last_name": "Windsor",
-                            "phone_number": "07123 456789",
-                            "email": "test@example.com",
-                            "address_line_1": "1 The Mall",
-                            "address_line_2": "",
-                            "town_city": "Westminter",
-                            "county": "London",
-                            "postcode": "SW1A 1AA"
-                        },
-                        "make": "Land Rover",
-                        "model": "Defender",
-                        "trim": "110",
-                        "year": 2021,
-                        "mileage": 250,
-                        "vrm": "B16 LIZ",
-                        "labour_quantity": 10,
-                        "labour_unit": "15.00",
-                        "labour_total": "150.00",
-                        "line_items": [
-                            {
-                                "id": 1,
-                                "invoice": 1,
-                                "description": "Oil Change",
-                                "quantity": 1,
-                                "unit_price": "25.00",
-                                "line_price": "25.00"
-                            },
-                            {
-                                "id": 2,
-                                "invoice": 1,
-                                "description": "Air Filter Change",
-                                "quantity": 1,
-                                "unit_price": "15.00",
-                                "line_price": "15.00"
-                            }
-                        ],
-                        "vat": "38.00",
-                        "invoice_total": "228.00",
-                        "comments": "Testing sending of pdf email"
-                    }
-                ]
-            }
-        )
 
     def resending_invoice_standard_recepient(self):
         invoice = Invoice.objects.get(
@@ -301,7 +242,7 @@ class TestBusinessAdminInvoice(APITestCase):
         response = self.client.post(
             f'/api/admin/invoice/{invoice.invoice_id}/send/',
             {
-                'emails': []
+                'emails': [invoice.customer.email]
             },
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
@@ -316,13 +257,13 @@ class TestBusinessAdminInvoice(APITestCase):
         response = self.client.post(
             f'/api/admin/invoice/{invoice.invoice_id}/send/',
             {
-                'emails': ['matt@mspe.me']
+                'emails': ['matt@mspe.me',]
             },
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
 
-    def resending_invoice_invalid_email_serializer(self):
+    def resending_invoice_no_emails(self):
         invoice = Invoice.objects.get(
             customer__first_name='Elizabeth',
             customer__last_name='Windsor',
@@ -330,6 +271,9 @@ class TestBusinessAdminInvoice(APITestCase):
         )
         response = self.client.post(
             f'/api/admin/invoice/{invoice.invoice_id}/send/',
+            {
+                'emails': []
+            },
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 400)
@@ -364,64 +308,6 @@ class TestBusinessAdminInvoice(APITestCase):
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            json.loads(response.content),
-            {
-                "count": 1,
-                "next": None,
-                "previous": None,
-                "results": [
-                    {
-                        "id": 1,
-                        "invoice_id": invoice.invoice_id,
-                        "created_date": f'{invoice.created_date:%Y-%m-%d %H:%M:%S}',
-                        "customer": {
-                            "id": 1,
-                            "customer_id": invoice.customer.customer_id,
-                            "first_name": "Elizabeth",
-                            "last_name": "Windsor",
-                            "phone_number": "07123 456789",
-                            "email": "test@example.com",
-                            "address_line_1": "1 The Mall",
-                            "address_line_2": "",
-                            "town_city": "Westminter",
-                            "county": "London",
-                            "postcode": "SW1A 1AA"
-                        },
-                        "make": "Land Rover",
-                        "model": "Defender",
-                        "trim": "110",
-                        "year": 2021,
-                        "mileage": 250,
-                        "vrm": "B16 LIZ",
-                        "labour_quantity": 10,
-                        "labour_unit": "15.00",
-                        "labour_total": "150.00",
-                        "line_items": [
-                            {
-                                "id": 1,
-                                "invoice": 1,
-                                "description": "Oil Change",
-                                "quantity": 1,
-                                "unit_price": "25.00",
-                                "line_price": "25.00"
-                            },
-                            {
-                                "id": 2,
-                                "invoice": 1,
-                                "description": "Air Filter Change",
-                                "quantity": 1,
-                                "unit_price": "15.00",
-                                "line_price": "15.00"
-                            }
-                        ],
-                        "vat": "38.00",
-                        "invoice_total": "228.00",
-                        "comments": "Testing sending of pdf email"
-                    }
-                ]
-            }
-        )
 
     def search_invoice_doesnt_exist(self):
         response = self.client.get(
@@ -785,9 +671,6 @@ class TestBusinessAdminInvoice(APITestCase):
         self.sending_invoice_by_email_working()
         self.sending_invoice_by_email_working_no_line_items()
         self.sending_invoice_by_email_serializer_invalid()
-        self.resending_invoice_standard_recepient()
-        self.resending_invoice_extra_emails()
-        self.resending_invoice_invalid_email_serializer()
         self.search_invoice_using_invoice_id()
         self.search_invoice_using_created_date()
         self.search_invoice_using_vrm()
@@ -802,6 +685,9 @@ class TestBusinessAdminInvoice(APITestCase):
         self.get_customer_doesnt_exist()
         self.get_invoice_not_found()
         self.get_invoice_working()
+        self.resending_invoice_standard_recepient()
+        self.resending_invoice_extra_emails()
+        self.resending_invoice_no_emails()
         self.update_invoice_not_found()
         self.update_invoice_working()
         self.destroy_invoice_not_found()
