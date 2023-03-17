@@ -4,14 +4,15 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from xhtml2pdf.pisa import pisaDocument
 
-from .models import Customer
+from .models import Customer, InvoiceItem
 
 
 def get_customer(customer_data):
+    queryset = Customer.objects
     if isinstance(customer_data, dict):
-        customer = Customer.objects.create(**customer_data)
+        customer = queryset.create(**customer_data)
     else:
-        customer = Customer.objects.get(customer_id=customer_data)
+        customer = queryset.get(customer_id=customer_data)
     return customer.id
 
 
@@ -44,3 +45,10 @@ def invoice_handler(data, extra_emails=None):
         email.send()
         return True
     return False
+
+
+def create_invoice_items(invoice_id, invoice_items):
+    item_objects = [
+        InvoiceItem(invoice_id=invoice_id, **item) for item in invoice_items
+    ]
+    InvoiceItem.objects.bulk_create(item_objects)
