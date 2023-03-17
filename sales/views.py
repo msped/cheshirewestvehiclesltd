@@ -14,6 +14,7 @@ from .utils import get_reservation_amount, send_reservation_email, send_new_rese
 
 stripe.api_key = os.environ.get('STRIPE_SECRET')
 
+
 class ListVehicles(ListAPIView):
     serializer_class = VehicleSerializer
     queryset = Vehicle.objects.filter(
@@ -22,17 +23,20 @@ class ListVehicles(ListAPIView):
     )
     paginate_by = 10
 
+
 class VehicleDetail(RetrieveAPIView):
     serializer_class = VehicleSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
     queryset = Vehicle.objects.filter(published=True)
 
+
 class VehicleState(RetrieveAPIView):
     serializer_class = VehicleStateSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
     queryset = Vehicle.objects.filter(reserved="1", published=True)
+
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -79,6 +83,7 @@ def stripe_webhook(request):
         send_new_reservation_email(reservation.vehicle)
     return Response(status=status.HTTP_200_OK)
 
+
 class StripePaymentIntentReserveVehicle(APIView):
     def post(self, request, vehicle_id):
         try:
@@ -88,7 +93,8 @@ class StripePaymentIntentReserveVehicle(APIView):
                 reservation = Reservations()
                 reservation.name = request.data.get('reservation_name')
                 reservation.email = request.data.get('reservation_email')
-                reservation.phone_number = request.data.get('reservation_phone_number')
+                reservation.phone_number = request.data.get(
+                    'reservation_phone_number')
                 reservation.vehicle = vehicle
                 reservation.save()
 

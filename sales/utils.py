@@ -4,11 +4,13 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .models import ReservationAmount
 
+
 def get_reservation_amount():
     try:
         return ReservationAmount.objects.get(active=True).amount
     except ReservationAmount.DoesNotExist:
         return 10000
+
 
 def send_reservation_email(reservation, res_amount, tradein=None):
     template = render_to_string(
@@ -26,6 +28,7 @@ def send_reservation_email(reservation, res_amount, tradein=None):
         from_email=os.environ.get('ADMIN_EMAIL'),
         html_message=template
     )
+
 
 def send_new_reservation_email(vehicle):
     send_mail(

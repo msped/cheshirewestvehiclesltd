@@ -17,6 +17,7 @@ from .utils import get_reservation_amount
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestView(APITestCase):
 
@@ -150,7 +151,8 @@ class TestView(APITestCase):
 
     def test_check_car_state(self):
         vehicle = Vehicle.objects.get(slug="mercedes-a-class-a250-2013")
-        response = self.client.get("/api/sales/state/mercedes-a-class-a250-2013/")
+        response = self.client.get(
+            "/api/sales/state/mercedes-a-class-a250-2013/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             json.loads(response.content),
@@ -161,7 +163,8 @@ class TestView(APITestCase):
         )
 
     def test_check_car_state_not_found(self):
-        response = self.client.get("/api/sales/state/mercedes-a-class-a45-2022/")
+        response = self.client.get(
+            "/api/sales/state/mercedes-a-class-a45-2022/")
         self.assertEqual(response.status_code, 404)
 
     def test_intent_reserve_vehicle_not_found(self):
@@ -252,6 +255,7 @@ class TestView(APITestCase):
             mileage=28614,
             comments="Good car, body work in great shape."
         ).exists())
+
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestSalesModels(APITestCase):
@@ -359,6 +363,7 @@ class TestSalesModels(APITestCase):
         self.trade_in_model()
         self.reservation_amount_active()
         self.reservation_amount_inactive()
+
 
 class TestSalesUtils(APITestCase):
 

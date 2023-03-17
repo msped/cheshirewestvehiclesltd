@@ -7,8 +7,10 @@ admin.site.register(ReservationAmount)
 admin.site.register(Reservations)
 admin.site.register(TradeIn)
 
+
 class VehicleImagesInlineAdmin(admin.TabularInline):
     model = VehicleImages
+
 
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
@@ -16,6 +18,7 @@ class VehicleAdmin(admin.ModelAdmin):
 
     class Meta:
         model = Vehicle
+
 
 @admin.register(VehicleImages)
 class VehicleImagesAdmin(admin.ModelAdmin):
