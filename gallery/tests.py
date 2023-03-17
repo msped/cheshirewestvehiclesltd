@@ -12,6 +12,7 @@ from .models import GalleryImage, GalleryItem
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestGalleryModels(APITestCase):
 
@@ -37,7 +38,8 @@ class TestGalleryModels(APITestCase):
             description='Test description',
             published=True
         )
-        self.assertEqual(str(gallery_item), f'{gallery_item.id} Mercedes 190E Cosworth')
+        self.assertEqual(str(gallery_item),
+                         f'{gallery_item.id} Mercedes 190E Cosworth')
         self.assertEqual(gallery_item.make, 'Mercedes')
         self.assertEqual(gallery_item.model, '190E')
         self.assertEqual(gallery_item.trim, 'Cosworth')
@@ -70,6 +72,7 @@ class TestGalleryModels(APITestCase):
     def test_in_order(self):
         self.gallery_item()
         self.gallery_image()
+
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestGalleryApp(APITestCase):

@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import GalleryImage, GalleryItem
 
+
 class GalleryItemSerailizer(serializers.ModelSerializer):
     """Serializer for a Gallery Item"""
     slug = serializers.ReadOnlyField()
@@ -19,6 +20,7 @@ class GalleryItemSerailizer(serializers.ModelSerializer):
             'published',
         ]
 
+
 class GalleryImageSerializer(serializers.ModelSerializer):
     """Serializer for an Image item"""
     class Meta:
@@ -29,11 +31,12 @@ class GalleryImageSerializer(serializers.ModelSerializer):
             'image',
         ]
 
+
 class GallerySerializer(serializers.ModelSerializer):
     """Serializer for a full gallery item"""
     images = serializers.SerializerMethodField()
     uploaded_images = serializers.ListField(
-        child = serializers.FileField(
+        child=serializers.FileField(
             max_length=1000000,
             allow_empty_file=False,
             use_url=False
@@ -41,7 +44,6 @@ class GallerySerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
-
 
     class Meta:
         model = GalleryItem
