@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 
 User = get_user_model()
 
+
 class TestAuthApp(APITestCase):
 
     def setUp(self):
@@ -231,6 +232,7 @@ class TestAuthApp(APITestCase):
         self.change_password_new_not_matching()
         self.change_password_wrong_old_password()
         self.change_password_valid()
+
 
 class TestAuthModel(APITestCase):
 

@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import ChangePasswordSerializer
 
+
 class BlacklistTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -19,6 +20,7 @@ class BlacklistTokenView(APIView):
             return Response(status=status.HTTP_200_OK)
         except Exception as error:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ChangePasswordView(UpdateAPIView):
     serializer_class = ChangePasswordSerializer
