@@ -95,14 +95,6 @@ class TestBusinessAdminGallery(APITestCase):
         ).count(), 2)
 
     def get_gallery(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.get(
             '/api/admin/gallery/ford-fiesta-st-2019/',
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
@@ -181,14 +173,6 @@ class TestBusinessAdminGallery(APITestCase):
         ).count(), 3)
 
     def delete_gallery(self):
-        access_request = self.client.post(
-            '/api/auth/jwt/create/',
-            {
-                'username': 'admin',
-                'password': 'TestP455word!'
-            }
-        )
-        access_token = access_request.data['access']
         response = self.client.delete(
             '/api/admin/gallery/ford-fiesta-st-2019/',
             **{'HTTP_AUTHORIZATION': f'Bearer {self.get_access_token()}'}
