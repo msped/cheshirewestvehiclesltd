@@ -6,12 +6,14 @@ from xhtml2pdf.pisa import pisaDocument
 
 from .models import Customer
 
+
 def get_customer(customer_data):
     if isinstance(customer_data, dict):
         customer = Customer.objects.create(**customer_data)
     else:
         customer = Customer.objects.get(customer_id=customer_data)
     return customer.id
+
 
 def render_to_pdf(template, data=None):
     template = render_to_string("invoice_template.html", data).encode("utf-8")
@@ -20,6 +22,7 @@ def render_to_pdf(template, data=None):
     if pdf.err:
         return None
     return HttpResponse(result.getvalue(), content_type="application/pdf")
+
 
 def invoice_handler(data, extra_emails=None):
     pdf = render_to_pdf(

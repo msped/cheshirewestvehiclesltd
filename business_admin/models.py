@@ -7,6 +7,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from phonenumber_field.modelfields import PhoneNumberField
 
+
 class Customer(models.Model):
     customer_id = models.CharField(
         max_length=10,
@@ -14,15 +15,15 @@ class Customer(models.Model):
         unique=True,
         editable=False
     )
-    first_name=models.CharField(max_length=50)
-    last_name=models.CharField(max_length=50)
-    phone_number=PhoneNumberField()
-    email=models.EmailField(blank=True, null=True)
-    address_line_1=models.CharField(max_length=50)
-    address_line_2=models.CharField(max_length=50, blank=True, null=True)
-    town_city=models.CharField(max_length=50)
-    county=models.CharField(max_length=35)
-    postcode=models.CharField(max_length=10)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    phone_number = PhoneNumberField()
+    email = models.EmailField(blank=True, null=True)
+    address_line_1 = models.CharField(max_length=50)
+    address_line_2 = models.CharField(max_length=50, blank=True, null=True)
+    town_city = models.CharField(max_length=50)
+    county = models.CharField(max_length=35)
+    postcode = models.CharField(max_length=10)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -37,9 +38,11 @@ class Customer(models.Model):
             ).order_by('customer_id').last()
             if last_customer:
                 last_customer_number = int(last_customer.customer_id[7:])
-                next_customer_number = '{0:03d}'.format(last_customer_number + 1)
+                next_customer_number = '{0:03d}'.format(
+                    last_customer_number + 1)
             self.customer_id = today_string + "1" + next_customer_number
         super(Customer, self).save(*args, **kwargs)
+
 
 class Invoice(models.Model):
     invoice_id = models.CharField(
@@ -48,24 +51,27 @@ class Invoice(models.Model):
         unique=True,
         editable=False
     )
-    created_date=models.DateTimeField(auto_now_add=timezone.now())
-    customer=models.ForeignKey(
+    created_date = models.DateTimeField(auto_now_add=timezone.now())
+    customer = models.ForeignKey(
         Customer,
         on_delete=models.PROTECT,
         related_name="customer"
     )
-    make=models.CharField(max_length=75)
-    model=models.CharField(max_length=100)
-    trim=models.CharField(max_length=150)
-    year=models.IntegerField()
-    mileage=models.IntegerField()
-    vrm=models.CharField(max_length=10)
-    labour_quantity=models.IntegerField(default=0)
-    labour_unit=models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    vat=models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    labour_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    invoice_total=models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    comments=models.TextField(null=True, blank=True)
+    make = models.CharField(max_length=75)
+    model = models.CharField(max_length=100)
+    trim = models.CharField(max_length=150)
+    year = models.IntegerField()
+    mileage = models.IntegerField()
+    vrm = models.CharField(max_length=10)
+    labour_quantity = models.IntegerField(default=0)
+    labour_unit = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0)
+    vat = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    labour_total = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0)
+    invoice_total = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0)
+    comments = models.TextField(null=True, blank=True)
     audit_log = AuditlogHistoryField()
 
     def __str__(self):
@@ -102,12 +108,14 @@ class Invoice(models.Model):
         self.labour_total = self.get_labour_total()
         super(Invoice, self).save(*args, **kwargs)
 
+
 class InvoiceItem(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="line_items")
-    description=models.TextField()
-    quantity=models.IntegerField()
-    unit_price=models.DecimalField(max_digits=6, decimal_places=2)
-    line_price=models.DecimalField(max_digits=6, decimal_places=2)
+    invoice = models.ForeignKey(
+        Invoice, on_delete=models.CASCADE, related_name="line_items")
+    description = models.TextField()
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+    line_price = models.DecimalField(max_digits=6, decimal_places=2)
 
     def get_total(self):
         return round(self.quantity * self.unit_price, 2)
@@ -119,12 +127,13 @@ class InvoiceItem(models.Model):
     def __str__(self):
         return f'{self.description} - £{self.line_price}'
 
+
 auditlog.register(Invoice, exclude_fields=[
-        'created_date',
-        'vat',
-        'invoice_total',
-        'labour_total'
-    ]
+    'created_date',
+    'vat',
+    'invoice_total',
+    'labour_total'
+]
 )
 auditlog.register(InvoiceItem, exclude_fields=['line_price'])
 auditlog.register(Customer)

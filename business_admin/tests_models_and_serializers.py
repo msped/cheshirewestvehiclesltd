@@ -17,15 +17,16 @@ from .utils import get_customer
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestInvoiceModelsAndSerializers(APITestCase):
 
     def setUp(self):
         user = get_user_model()
         user.objects.create(
-            first_name= 'Harold',
-            last_name= 'Finch',
-            username= 'admin',
+            first_name='Harold',
+            last_name='Finch',
+            username='admin',
             password=make_password('TestP455word!'),
             is_staff=True
         ).save()

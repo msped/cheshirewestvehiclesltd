@@ -5,6 +5,7 @@ from .utils import get_customer
 
 # pylint: disable=W0223
 
+
 class ResendInvoiceSerializer(serializers.Serializer):
     emails = serializers.ListField(
         child=serializers.EmailField(),
@@ -12,6 +13,7 @@ class ResendInvoiceSerializer(serializers.Serializer):
         required=True,
         allow_empty=False
     )
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     customer_id = serializers.ReadOnlyField()
@@ -32,6 +34,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             'postcode',
         ]
 
+
 class InvoiceItemSerializer(serializers.ModelSerializer):
     line_price = serializers.DecimalField(
         max_digits=6,
@@ -50,9 +53,11 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
             'line_price'
         ]
 
+
 class InvoiceSerializer(serializers.ModelSerializer):
     invoice_id = serializers.ReadOnlyField()
-    created_date= serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
+    created_date = serializers.DateTimeField(
+        read_only=True, format="%Y-%m-%d %H:%M:%S")
     customer = CustomerSerializer(many=False)
     line_items = InvoiceItemSerializer(many=True, read_only=True)
     new_line_items = serializers.ListField(
@@ -102,18 +107,20 @@ class InvoiceSerializer(serializers.ModelSerializer):
         ]
 
     def get_audit_log(self, obj):
-        #print(f"Log {obj.invoice_id}", obj.audit_log.latest().changes_dict)
+        # print(f"Log {obj.invoice_id}", obj.audit_log.latest().changes_dict)
         return obj.audit_log.latest().changes_dict
 
     def create(self, validated_data):
         customer = get_customer(validated_data.pop('customer'))
         if 'new_line_items' in validated_data:
             invoice_items = validated_data.pop('new_line_items')
-            invoice = Invoice.objects.create(customer_id=customer, **validated_data)
+            invoice = Invoice.objects.create(
+                customer_id=customer, **validated_data)
             for item in invoice_items:
                 InvoiceItem.objects.create(invoice=invoice, **item)
         else:
-            invoice = Invoice.objects.create(customer_id=customer, **validated_data)
+            invoice = Invoice.objects.create(
+                customer_id=customer, **validated_data)
         invoice.invoice_total = invoice.get_total()
         invoice.save()
         return invoice
@@ -127,6 +134,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
                 )
         super().update(instance, validated_data)
         return instance
+
 
 class CustomerInvoicesSerializer(serializers.ModelSerializer):
     invoices = serializers.SerializerMethodField()

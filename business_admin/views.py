@@ -35,11 +35,13 @@ from .utils import invoice_handler
 
 # Create your views here.
 
+
 class SendInvoice(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, invoice_id):
-        email_serializer = ResendInvoiceSerializer(data=request.data, many=False)
+        email_serializer = ResendInvoiceSerializer(
+            data=request.data, many=False)
         if email_serializer.is_valid():
             invoice = get_object_or_404(Invoice, invoice_id=invoice_id)
             invoice_serializer = InvoiceSerializer(invoice, many=False)
@@ -50,11 +52,12 @@ class SendInvoice(APIView):
             if send_email:
                 LogEntry.objects.create(
                     actor_id=request.user.id,
-                    content_type_id=ContentType.objects.get_for_model(invoice).pk,
+                    content_type_id=ContentType.objects.get_for_model(
+                        invoice).pk,
                     object_id=invoice.id,
                     object_pk=invoice,
                     object_repr=str(invoice),
-                action=1, # 1 is update
+                    action=1,  # 1 is update
                     changes=json.dumps({
                         "sent_to": email_serializer.data
                     }),
@@ -65,6 +68,7 @@ class SendInvoice(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return Response(email_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class InvoiceView(APIView):
     permission_classes = [IsAdminUser]
@@ -85,6 +89,7 @@ class InvoiceView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+
 class InvoiceSearch(ListAPIView):
     permission_classes = [IsAdminUser]
     pagination_by = 10
@@ -97,6 +102,7 @@ class InvoiceSearch(ListAPIView):
         'vrm'
     ]
 
+
 class RetrieveUpdateDestroyInvoice(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Invoice.objects.all()
@@ -104,11 +110,13 @@ class RetrieveUpdateDestroyInvoice(RetrieveUpdateDestroyAPIView):
     lookup_field = 'invoice_id'
     lookup_url_kwarg = 'invoice_id'
 
+
 class CreateListVehicle(ListCreateAPIView):
     queryset = Vehicle.objects.all()
     pagination_by = 10
     serializer_class = VehicleSerializer
     permission_classes = [IsAdminUser]
+
 
 class CreateListGalleryItem(ListCreateAPIView):
     queryset = GalleryItem.objects.all()
@@ -116,11 +124,13 @@ class CreateListGalleryItem(ListCreateAPIView):
     serializer_class = GallerySerializer
     permission_classes = [IsAdminUser]
 
+
 class GetUpdateDeleteVehicle(RetrieveUpdateDestroyAPIView):
     serializer_class = VehicleSerializer
     permission_classes = [IsAdminUser]
     queryset = Vehicle.objects.all()
     lookup_field = "slug"
+
 
 class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     serializer_class = GallerySerializer
@@ -128,17 +138,20 @@ class GetUpdateDeleteGallery(RetrieveUpdateDestroyAPIView):
     queryset = GalleryItem.objects.all()
     lookup_field = "slug"
 
+
 class DeleteVehicleImage(DestroyAPIView):
     serializer_class = VehicleImagesSerializer
     permission_classes = [IsAdminUser]
     queryset = VehicleImages.objects.all()
     lookup_url_kwarg = 'object_id'
 
+
 class DeleteGalleryImage(DestroyAPIView):
     serializer_class = GalleryImageSerializer
     permission_classes = [IsAdminUser]
     queryset = GalleryImage.objects.all()
     lookup_url_kwarg = 'object_id'
+
 
 class CustomerSearch(ListAPIView):
     permission_classes = [IsAdminUser]
@@ -153,6 +166,7 @@ class CustomerSearch(ListAPIView):
         'phone_number',
         'email'
     ]
+
 
 class CustomerView(RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()

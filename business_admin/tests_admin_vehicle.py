@@ -12,15 +12,16 @@ from sales.models import VehicleImages, Vehicle
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestBusinessAdminVehicle(APITestCase):
 
     def setUp(self):
         user = get_user_model()
         user.objects.create(
-            first_name= 'Harold',
-            last_name= 'Finch',
-            username= 'admin',
+            first_name='Harold',
+            last_name='Finch',
+            username='admin',
             password=make_password('TestP455word!'),
             is_staff=True
         ).save()
@@ -31,7 +32,7 @@ class TestBusinessAdminVehicle(APITestCase):
         image.save(tmp_file, 'jpeg')
         tmp_file.seek(0)
         return tmp_file
-    
+
     def get_access_token(self):
         access_request = self.client.post(
             '/api/auth/jwt/create/',

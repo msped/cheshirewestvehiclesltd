@@ -10,15 +10,16 @@ from .models import Customer, InvoiceItem, Invoice
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
+
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestBusinessAdminInvoice(APITestCase):
 
     def setUp(self):
         user = get_user_model()
         user.objects.create(
-            first_name= 'Harold',
-            last_name= 'Finch',
-            username= 'admin',
+            first_name='Harold',
+            last_name='Finch',
+            username='admin',
             password=make_password('TestP455word!'),
             is_staff=True
         ).save()
@@ -211,7 +212,8 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertEqual(invoice.labour_unit, 15.00)
         self.assertEqual(invoice.labour_total, 15.00)
         self.assertEqual(invoice.invoice_total, 18.00)
-        self.assertEqual(invoice.comments, "Testing sending of pdf email without line items")
+        self.assertEqual(invoice.comments,
+                         "Testing sending of pdf email without line items")
 
         # Check no line items exist in DB
         self.assertFalse(InvoiceItem.objects.filter(
