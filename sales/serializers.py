@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Vehicle, VehicleImages
 
+
 class VehicleImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleImages
@@ -10,10 +11,11 @@ class VehicleImagesSerializer(serializers.ModelSerializer):
             "image",
         ]
 
+
 class VehicleSerializer(serializers.ModelSerializer):
     images = VehicleImagesSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
-        child = serializers.FileField(
+        child=serializers.FileField(
             max_length=1000000,
             allow_empty_file=False,
             use_url=False
@@ -85,6 +87,7 @@ class VehicleSerializer(serializers.ModelSerializer):
                 )
         super().update(instance, validated_data)
         return instance
+
 
 class VehicleStateSerializer(serializers.ModelSerializer):
     reserved = serializers.CharField(

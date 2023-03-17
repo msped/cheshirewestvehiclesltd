@@ -6,6 +6,7 @@ from django.utils.text import slugify
 
 from auditlog.registry import auditlog
 
+
 class Vehicle(models.Model):
     """Vehicle Model"""
     class Reserve(models.TextChoices):
@@ -40,13 +41,17 @@ class Vehicle(models.Model):
     model = models.CharField(max_length=15)
     trim = models.CharField(max_length=30)
     year = models.IntegerField(
-        choices=[(x, str(x)) for x in range(1980,datetime.date.today().year+1)],
+        choices=[(x, str(x))
+                 for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
     )
     fuel = models.CharField(max_length=8, choices=Fuel.choices, default="1")
-    body_type = models.CharField(max_length=8, choices=BodyType.choices, default="1")
-    car_state = models.CharField(max_length=8, choices=CarState.choices, default="1")
-    reserved = models.CharField(max_length=8, choices=Reserve.choices, default="1")
+    body_type = models.CharField(
+        max_length=8, choices=BodyType.choices, default="1")
+    car_state = models.CharField(
+        max_length=8, choices=CarState.choices, default="1")
+    reserved = models.CharField(
+        max_length=8, choices=Reserve.choices, default="1")
     mileage = models.IntegerField()
     engine_size = models.IntegerField()
     mot_expiry = models.DateField()
@@ -61,16 +66,20 @@ class Vehicle(models.Model):
         return f"{self.id} {self.make} {self.model} {self.trim} - £{self.price}"
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(f'{self.make} {self.model} {self.trim} {self.year}')
+        self.slug = slugify(
+            f'{self.make} {self.model} {self.trim} {self.year}')
         super(Vehicle, self).save(*args, **kwargs)
+
 
 class VehicleImages(models.Model):
     """Images relating to a vehicle"""
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="images")
+    vehicle = models.ForeignKey(
+        Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="vehicle_images")
 
     def __str__(self):
         return f"{self.vehicle.id} - {self.id}"
+
 
 class Reservations(models.Model):
     order_id = models.CharField(
@@ -91,13 +100,15 @@ class Reservations(models.Model):
     def __str__(self):
         return f'{self.name} reserved {self.vehicle}'
 
+
 class TradeIn(models.Model):
     reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
     make = models.CharField(max_length=15)
     model = models.CharField(max_length=15)
     trim = models.CharField(max_length=30)
     year = models.IntegerField(
-        choices=[(x, str(x)) for x in range(1980,datetime.date.today().year+1)],
+        choices=[(x, str(x))
+                 for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
     )
     mileage = models.IntegerField()
@@ -105,6 +116,7 @@ class TradeIn(models.Model):
 
     def __str__(self):
         return f'Trade In Vehicle for {self.reservation.id}'
+
 
 class ReservationAmount(models.Model):
     amount = models.IntegerField()
@@ -116,6 +128,7 @@ class ReservationAmount(models.Model):
         if self.active:
             activity = "Active"
         return f'£{formatted_currency} - {activity}'
+
 
 auditlog.register(Vehicle)
 auditlog.register(VehicleImages)
