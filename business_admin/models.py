@@ -114,8 +114,7 @@ class InvoiceItem(models.Model):
     description = models.TextField()
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
-    line_price = models.DecimalField(
-        max_digits=6, decimal_places=2, blank=True, null=True)
+    line_price = models.DecimalField(max_digits=6, decimal_places=2)
 
     def get_total(self):
         return round(self.quantity * self.unit_price, 2)
