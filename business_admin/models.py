@@ -1,6 +1,7 @@
 import datetime
 import decimal
 from django.utils import timezone
+from django.db.models import Sum
 from django.db import models
 
 from auditlog.models import AuditlogHistoryField
@@ -81,15 +82,12 @@ class Invoice(models.Model):
         return round(total, 2)
 
     def get_total(self):
-        total = 0
-        items = InvoiceItem.objects.filter(invoice_id=self.id)
-        if items:
-            for item in items:
-                total += item.line_price
-        total += self.get_labour_total()
+        total = InvoiceItem.objects.filter(invoice_id=self.id).aggregate(
+            Sum('line_price'))['line_price__sum'] or 0
+        vat = 0
         if total != 0:
-            self.vat = total * decimal.Decimal(0.2)
-        total += self.vat
+            vat = total * decimal.Decimal(0.2)
+        total += self.get_labour_total() + vat
         return round(total, 2)
 
     def save(self, *args, **kwargs):
@@ -105,6 +103,8 @@ class Invoice(models.Model):
                 next_invoice_number = f"{last_invoice_number + 1:03d}"
             self.invoice_id = f'{today_string}2{next_invoice_number}'
         self.labour_total = self.get_labour_total()
+        if self.invoice_id:
+            self.invoice_total = self.get_total()
         super(Invoice, self).save(*args, **kwargs)
 
 
