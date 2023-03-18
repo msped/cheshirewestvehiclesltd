@@ -150,6 +150,8 @@ class CustomerInvoicesSerializer(serializers.ModelSerializer):
         ]
 
     def get_invoices(self, obj):
-        data = Invoice.objects.filter(customer__customer_id=obj.customer_id)
+        data = Invoice.objects.filter(customer__customer_id=obj.customer_id)\
+                              .select_related('customer')\
+                              .prefetch_related('line_items')
         serializer = InvoiceSerializer(data, many=True)
         return serializer.data
