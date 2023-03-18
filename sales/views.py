@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from .models import Vehicle, Reservations, TradeIn
+from .models import Vehicle, Reservation, TradeIn
 from .serializers import VehicleSerializer, VehicleStateSerializer, ReserveVehicleSerializer
 from .utils import get_reservation_amount, send_reservation_email, send_new_reservation_email
 
@@ -72,7 +72,7 @@ def stripe_webhook(request):
         vehicle = get_object_or_404(Vehicle, id=reservation.vehicle.id)
         vehicle.reserved = "2"
         vehicle.save()
-        reservation = get_object_or_404(Reservations, order_id=reservation_id)
+        reservation = get_object_or_404(Reservation, order_id=reservation_id)
         reservation.paid = True
         reservation.paymentIntent_id = intent["id"]
         reservation.save()
@@ -98,55 +98,51 @@ class StripePaymentIntentReserveVehicle(APIView):
         try:
             vehicle = get_object_or_404(Vehicle, id=vehicle_id)
 
-            if vehicle.reserved == "1":
-                reservation = Reservations()
-                reservation.name = request.data.get('reservation_name')
-                reservation.email = request.data.get('reservation_email')
-                reservation.phone_number = request.data.get(
-                    'reservation_phone_number')
-                reservation.vehicle = vehicle
-                reservation.save()
-
-                if (
-                    request.data.get('tradein_make') is not None and
-                    request.data.get('tradein_model') is not None
-                ):
-                    tradein = TradeIn()
-                    tradein.reservation = reservation
-                    tradein.make = request.data.get('tradein_make')
-                    tradein.model = request.data.get('tradein_model')
-                    tradein.trim = request.data.get('tradein_trim')
-                    tradein.year = request.data.get('tradein_year')
-                    tradein.mileage = request.data.get('tradein_mileage')
-                    tradein.comments = request.data.get('tradein_comments')
-                    tradein.save()
-
-                reservation_amount = get_reservation_amount()
-                intent = stripe.PaymentIntent.create(
-                    currency='gbp',
-                    amount=reservation_amount,
-                    statement_descriptor='Vehicle reservation',
-                    payment_method_types=['card'],
-                    metadata={
-                        'reservation_id': reservation.order_id
-                    }
-                )
-
+            if not vehicle.is_for_sale():
                 return Response(
-                    {'client_secret': intent.client_secret},
-                    status=status.HTTP_200_OK
+                    {'error': "Vehicle is not for sale therefore can't be reserved."},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            return Response(
-                {'error': "Vehicle is not for sale therefore can't be reserved."},
-                status=status.HTTP_400_BAD_REQUEST
+
+            reservation = Reservation()
+            reservation.name = request.data.get('reservation_name')
+            reservation.email = request.data.get('reservation_email')
+            reservation.phone_number = request.data.get(
+                'reservation_phone_number')
+            reservation.vehicle = vehicle
+            reservation.save()
+
+            if (
+                request.data.get('tradein_make') is not None and
+                request.data.get('tradein_model') is not None
+            ):
+                tradein = TradeIn()
+                tradein.reservation = reservation
+                tradein.make = request.data.get('tradein_make')
+                tradein.model = request.data.get('tradein_model')
+                tradein.trim = request.data.get('tradein_trim')
+                tradein.year = request.data.get('tradein_year')
+                tradein.mileage = request.data.get('tradein_mileage')
+                tradein.comments = request.data.get('tradein_comments')
+                tradein.save()
+
+            intent = stripe.PaymentIntent.create(
+                currency='gbp',
+                amount=get_reservation_amount(),
+                statement_descriptor='Vehicle reservation',
+                payment_method_types=['card'],
+                metadata={
+                    'reservation_id': reservation.order_id
+                }
             )
 
-        except stripe.error.CardError as error:
-            return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
-        except stripe.error.RateLimitError as error:
-            return Response({'error': error}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-        except stripe.error.InvalidRequestError:
             return Response(
-                {'error': 'An invalid request occurred'},
+                {'client_secret': intent.client_secret},
+                status=status.HTTP_200_OK
+            )
+
+        except stripe.error.StripeError as error:
+            return Response(
+                {'error': str(error)},
                 status=status.HTTP_400_BAD_REQUEST
             )

@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 from .models import (
     Vehicle,
     VehicleImages,
-    Reservations,
+    Reservation,
     TradeIn,
     ReservationAmount
 )
@@ -200,7 +200,7 @@ class TestView(APITestCase):
             }
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(Reservations.objects.filter(
+        self.assertTrue(Reservation.objects.filter(
             name="John Doe",
             email="test@test.com",
             phone_number="07123456789",
@@ -241,7 +241,7 @@ class TestView(APITestCase):
             }
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(Reservations.objects.filter(
+        self.assertTrue(Reservation.objects.filter(
             name="Jane Doe",
             email="test2@test.com",
             phone_number="07123456781",
@@ -304,21 +304,21 @@ class TestSalesModels(APITestCase):
 
     def reservations_model(self):
         vehicle = Vehicle.objects.get(make='Mercedes', mileage=172000)
-        Reservations.objects.create(
+        Reservation.objects.create(
             name='Matt Edwards',
             email='test@test.com',
             phone_number='07123456789',
             vehicle=vehicle,
             paymentIntent_id='testIdFromStripe'
         ).save()
-        reservation = Reservations.objects.get(name="Matt Edwards")
+        reservation = Reservation.objects.get(name="Matt Edwards")
         self.assertEqual(
             str(reservation),
             f'Matt Edwards reserved {vehicle.id} Mercedes 190E 2.3-16 - £11095.00'
         )
 
     def trade_in_model(self):
-        reservation = Reservations.objects.get(name="Matt Edwards")
+        reservation = Reservation.objects.get(name="Matt Edwards")
         TradeIn.objects.create(
             reservation=reservation,
             make='Ford',
