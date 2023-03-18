@@ -115,7 +115,7 @@ class Reservation(models.Model):
                 last_reservation_number = int(last_reservation.order_id[7:])
                 next_reservation_number = f"{last_reservation_number + 1:03d}"
             self.order_id = f'{today_string}3{next_reservation_number}'
-        super(Reservation).save(*args, **kwargs)
+        super(Reservation, self).save(*args, **kwargs)
 
 
 class TradeIn(models.Model):
