@@ -62,6 +62,11 @@ class Vehicle(models.Model):
     class Meta:
         ordering = ["-id"]
 
+    def is_for_sale(self):
+        if self.reserved == "1":
+            return True
+        return False
+
     def __str__(self):
         return f"{self.id} {self.make} {self.model} {self.trim} - £{self.price}"
 
