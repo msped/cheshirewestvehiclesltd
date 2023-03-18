@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from .models import Vehicle, Reservations, TradeIn
-from .serializers import VehicleSerializer, VehicleStateSerializer
+from .serializers import VehicleSerializer, VehicleStateSerializer, ReserveVehicleSerializer
 from .utils import get_reservation_amount, send_reservation_email, send_new_reservation_email
 
 stripe.api_key = os.environ.get('STRIPE_SECRET')
@@ -17,25 +17,34 @@ stripe.api_key = os.environ.get('STRIPE_SECRET')
 
 class ListVehicles(ListAPIView):
     serializer_class = VehicleSerializer
-    queryset = Vehicle.objects.filter(
-        Q(reserved='1') | Q(reserved='2'),
-        published=True
-    )
     paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Vehicle.objects.filter(
+            Q(reserved='1') | Q(reserved='2'),
+            published=True
+        )
+        return queryset
 
 
 class VehicleDetail(RetrieveAPIView):
     serializer_class = VehicleSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
-    queryset = Vehicle.objects.filter(published=True)
+
+    def get_queryset(self):
+        queryset = Vehicle.objects.filter(published=True)
+        return queryset
 
 
 class VehicleState(RetrieveAPIView):
     serializer_class = VehicleStateSerializer
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
-    queryset = Vehicle.objects.filter(reserved="1", published=True)
+
+    def get_queryset(self):
+        queryset = Vehicle.objects.filter(reserved="1", published=True)
+        return queryset
 
 
 @csrf_exempt
