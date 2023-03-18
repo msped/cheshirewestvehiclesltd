@@ -49,6 +49,11 @@ def invoice_handler(data, extra_emails=None):
 
 def create_invoice_items(invoice_id, invoice_items):
     item_objects = [
-        InvoiceItem(invoice_id=invoice_id, **item) for item in invoice_items
+        InvoiceItem(
+            invoice_id=invoice_id,
+            **item,
+            line_price=round(item['quantity'] *
+                             item['unit_price'], 2)
+        ) for item in invoice_items
     ]
     InvoiceItem.objects.bulk_create(item_objects)
