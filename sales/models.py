@@ -1,5 +1,4 @@
 import datetime
-import uuid
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db import models
 from django.utils.text import slugify
@@ -86,12 +85,11 @@ class VehicleImages(models.Model):
         return f"{self.vehicle.id} - {self.id}"
 
 
-class Reservations(models.Model):
+class Reservation(models.Model):
     order_id = models.CharField(
-        max_length=150,
+        max_length=10,
         blank=True,
         unique=True,
-        default=uuid.uuid4,
         editable=False
     )
     name = models.CharField(max_length=75)
@@ -105,9 +103,23 @@ class Reservations(models.Model):
     def __str__(self):
         return f'{self.name} reserved {self.vehicle}'
 
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            today = datetime.date.today()
+            today_string = today.strftime('%y%m%d')
+            next_reservation_number = '001'
+            last_reservation = Reservation.objects.filter(
+                order_id__startswith=today_string
+            ).order_by('order_id').last()
+            if last_reservation:
+                last_reservation_number = int(last_reservation.order_id[7:])
+                next_reservation_number = f"{last_reservation_number + 1:03d}"
+            self.order_id = f'{today_string}3{next_reservation_number}'
+        super(Reservation).save(*args, **kwargs)
+
 
 class TradeIn(models.Model):
-    reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
     make = models.CharField(max_length=15)
     model = models.CharField(max_length=15)
     trim = models.CharField(max_length=30)
@@ -137,6 +149,6 @@ class ReservationAmount(models.Model):
 
 auditlog.register(Vehicle)
 auditlog.register(VehicleImages)
-auditlog.register(Reservations)
+auditlog.register(Reservation)
 auditlog.register(TradeIn)
 auditlog.register(ReservationAmount)
