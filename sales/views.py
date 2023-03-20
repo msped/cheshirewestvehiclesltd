@@ -9,7 +9,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from .models import Vehicle, Reservation, TradeIn
-from .serializers import VehicleSerializer, VehicleStateSerializer, ReserveVehicleSerializer
+from .serializers import (VehicleSerializer, VehicleStateSerializer,
+                          ReserveVehicleSerializer, TradeInSerializer)
 from .utils import get_reservation_amount, send_reservation_email, send_new_reservation_email
 
 stripe.api_key = os.environ.get('STRIPE_SECRET')
@@ -103,28 +104,18 @@ class StripePaymentIntentReserveVehicle(APIView):
                     {'error': "Vehicle is not for sale therefore can't be reserved."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            resvervations_data = request.data.copy()
+            tradein_data = resvervations_data.pop('tradein', None)
+            reservation_serializer = ReserveVehicleSerializer(
+                data=request.data, many=False)
+            reservation_serializer.is_valid(raise_exception=True)
+            reservation = reservation_serializer.save(vehicle=vehicle)
 
-            reservation = Reservation()
-            reservation.name = request.data.get('reservation_name')
-            reservation.email = request.data.get('reservation_email')
-            reservation.phone_number = request.data.get(
-                'reservation_phone_number')
-            reservation.vehicle = vehicle
-            reservation.save()
-
-            if (
-                request.data.get('tradein_make') is not None and
-                request.data.get('tradein_model') is not None
-            ):
-                tradein = TradeIn()
-                tradein.reservation = reservation
-                tradein.make = request.data.get('tradein_make')
-                tradein.model = request.data.get('tradein_model')
-                tradein.trim = request.data.get('tradein_trim')
-                tradein.year = request.data.get('tradein_year')
-                tradein.mileage = request.data.get('tradein_mileage')
-                tradein.comments = request.data.get('tradein_comments')
-                tradein.save()
+            if tradein_data:
+                tradein_serializer = TradeInSerializer(
+                    data=tradein_data, many=False)
+                tradein_serializer.is_valid(raise_exception=True)
+                tradein_serializer.save(reservation=reservation)
 
             intent = stripe.PaymentIntent.create(
                 currency='gbp',
