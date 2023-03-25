@@ -261,7 +261,7 @@ class TestView(APITestCase):
         ).exists())
 
 
-@ override_settings(MEDIA_ROOT=MEDIA_ROOT)
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestSalesModels(APITestCase):
 
     @ classmethod

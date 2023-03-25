@@ -42,9 +42,17 @@ class Vehicle(models.Model):
     year = models.IntegerField(
         choices=[(x, str(x))
                  for x in range(1980, datetime.date.today().year+1)],
+        choices=[(x, str(x))
+                 for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
     )
     fuel = models.CharField(max_length=8, choices=Fuel.choices, default="1")
+    body_type = models.CharField(
+        max_length=8, choices=BodyType.choices, default="1")
+    car_state = models.CharField(
+        max_length=8, choices=CarState.choices, default="1")
+    reserved = models.CharField(
+        max_length=8, choices=Reserve.choices, default="1")
     body_type = models.CharField(
         max_length=8, choices=BodyType.choices, default="1")
     car_state = models.CharField(
@@ -72,11 +80,15 @@ class Vehicle(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(
             f'{self.make} {self.model} {self.trim} {self.year}')
+        self.slug = slugify(
+            f'{self.make} {self.model} {self.trim} {self.year}')
         super(Vehicle, self).save(*args, **kwargs)
 
 
 class VehicleImages(models.Model):
     """Images relating to a vehicle"""
+    vehicle = models.ForeignKey(
+        Vehicle, on_delete=models.CASCADE, related_name="images")
     vehicle = models.ForeignKey(
         Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="vehicle_images")
@@ -124,6 +136,8 @@ class TradeIn(models.Model):
     model = models.CharField(max_length=15)
     trim = models.CharField(max_length=30)
     year = models.IntegerField(
+        choices=[(x, str(x))
+                 for x in range(1980, datetime.date.today().year+1)],
         choices=[(x, str(x))
                  for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
