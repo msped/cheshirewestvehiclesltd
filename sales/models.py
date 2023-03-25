@@ -138,8 +138,6 @@ class TradeIn(models.Model):
     year = models.IntegerField(
         choices=[(x, str(x))
                  for x in range(1980, datetime.date.today().year+1)],
-        choices=[(x, str(x))
-                 for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
     )
     mileage = models.IntegerField()
