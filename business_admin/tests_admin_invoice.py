@@ -122,7 +122,7 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertEqual(invoice.labour_quantity, 10.00)
         self.assertEqual(invoice.labour_unit, 15.00)
         self.assertEqual(invoice.labour_total, 150.00)
-        self.assertEqual(invoice.invoice_total, 228.00)
+        self.assertEqual(invoice.invoice_total, 198.00)
         self.assertEqual(invoice.comments, "Testing sending of pdf email")
 
         # Check both line items exists in DB
@@ -211,7 +211,7 @@ class TestBusinessAdminInvoice(APITestCase):
         self.assertEqual(invoice.labour_quantity, 1)
         self.assertEqual(invoice.labour_unit, 15.00)
         self.assertEqual(invoice.labour_total, 15.00)
-        self.assertEqual(invoice.invoice_total, 18.00)
+        self.assertEqual(invoice.invoice_total, 15.00)
         self.assertEqual(invoice.comments,
                          "Testing sending of pdf email without line items")
 

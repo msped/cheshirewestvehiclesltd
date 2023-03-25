@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Invoice, InvoiceItem, Customer
-from .utils import get_customer
+from .utils import get_customer, create_invoice_items
 
 # pylint: disable=W0223
 
@@ -107,31 +107,24 @@ class InvoiceSerializer(serializers.ModelSerializer):
         ]
 
     def get_audit_log(self, obj):
-        # print(f"Log {obj.invoice_id}", obj.audit_log.latest().changes_dict)
         return obj.audit_log.latest().changes_dict
 
     def create(self, validated_data):
         customer = get_customer(validated_data.pop('customer'))
-        if 'new_line_items' in validated_data:
-            invoice_items = validated_data.pop('new_line_items')
-            invoice = Invoice.objects.create(
-                customer_id=customer, **validated_data)
-            for item in invoice_items:
-                InvoiceItem.objects.create(invoice=invoice, **item)
-        else:
-            invoice = Invoice.objects.create(
-                customer_id=customer, **validated_data)
+        new_items = validated_data.pop('new_line_items', None)
+        invoice = Invoice.objects.create(
+            customer_id=customer, **validated_data)
+
+        if new_items:
+            create_invoice_items(invoice.id, new_items)
         invoice.invoice_total = invoice.get_total()
         invoice.save()
         return invoice
 
     def update(self, instance, validated_data):
         if 'new_line_items' in validated_data:
-            invoice_items = validated_data.pop('new_line_items')
-            for item in invoice_items:
-                InvoiceItem.objects.create(
-                    invoice_id=instance.id, **item
-                )
+            create_invoice_items(
+                instance.id, validated_data.pop('new_line_items'))
         super().update(instance, validated_data)
         return instance
 
@@ -157,6 +150,8 @@ class CustomerInvoicesSerializer(serializers.ModelSerializer):
         ]
 
     def get_invoices(self, obj):
-        data = Invoice.objects.filter(customer__customer_id=obj.customer_id)
+        data = Invoice.objects.filter(customer__customer_id=obj.customer_id)\
+                              .select_related('customer')\
+                              .prefetch_related('line_items')
         serializer = InvoiceSerializer(data, many=True)
         return serializer.data

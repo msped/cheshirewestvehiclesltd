@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Vehicle, VehicleImages
+from .models import Vehicle, VehicleImages, Reservation, TradeIn
+
 
 
 class VehicleImagesSerializer(serializers.ModelSerializer):
@@ -97,3 +98,36 @@ class VehicleStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
         fields = ["id", "reserved"]
+
+
+class TradeInSerializer(serializers.ModelSerializer):
+    reservation = serializers.ReadOnlyField()
+
+    class Meta:
+        model = TradeIn
+        fields = [
+            'reservation',
+            'make',
+            'model',
+            'trim',
+            'year',
+            'mileage',
+            'comments',
+        ]
+
+
+class ReserveVehicleSerializer(serializers.ModelSerializer):
+    order_id = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Reservation
+        fields = [
+            'order_id',
+            'name',
+            'email',
+            'phone_number',
+            'vehicle',
+            'reservation_date',
+            'paymentIntent_id',
+            'paid',
+        ]
