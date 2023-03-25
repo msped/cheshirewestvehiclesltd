@@ -42,8 +42,6 @@ class Vehicle(models.Model):
     year = models.IntegerField(
         choices=[(x, str(x))
                  for x in range(1980, datetime.date.today().year+1)],
-        choices=[(x, str(x))
-                 for x in range(1980, datetime.date.today().year+1)],
         default=datetime.date.today().year
     )
     fuel = models.CharField(max_length=8, choices=Fuel.choices, default="1")
@@ -153,10 +151,9 @@ class ReservationAmount(models.Model):
 
     def __str__(self):
         activity = "Inactive"
-        formatted_currency = '{:.2f}'.format(self.amount / 100)
         if self.active:
             activity = "Active"
-        return f'£{formatted_currency} - {activity}'
+        return f'£{self.amount/100:.2f} - {activity}'
 
 
 auditlog.register(Vehicle)
