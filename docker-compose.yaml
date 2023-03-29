@@ -1,0 +1,22 @@
+version: '3.10'
+
+services:
+  app:
+    platform: Linux/arm64
+    build: .
+    volumes:
+      - .:/cheshirewestvehicles
+    ports:
+      - 8000:8000
+    image: app:cheshirewestvehicles
+    container_name: cwv_container
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - '.env'
+    container_name: postgres_db
