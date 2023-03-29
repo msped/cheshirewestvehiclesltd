@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import Vehicle, VehicleImages, Reservation, TradeIn
 
 
-
 class VehicleImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleImages

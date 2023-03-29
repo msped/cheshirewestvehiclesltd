@@ -78,15 +78,11 @@ class Vehicle(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(
             f'{self.make} {self.model} {self.trim} {self.year}')
-        self.slug = slugify(
-            f'{self.make} {self.model} {self.trim} {self.year}')
         super(Vehicle, self).save(*args, **kwargs)
 
 
 class VehicleImages(models.Model):
     """Images relating to a vehicle"""
-    vehicle = models.ForeignKey(
-        Vehicle, on_delete=models.CASCADE, related_name="images")
     vehicle = models.ForeignKey(
         Vehicle, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="vehicle_images")
