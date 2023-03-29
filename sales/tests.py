@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 from .models import (
     Vehicle,
     VehicleImages,
-    Reservations,
+    Reservation,
     TradeIn,
     ReservationAmount
 )
@@ -176,9 +176,9 @@ class TestView(APITestCase):
         response = self.client.post(
             f'/api/sales/reserve/{vehicle.id}/',
             {
-                "reservation_name": "John Doe",
-                "reservation_email": "test@test.com",
-                "reservation_phone_number": "07123456789"
+                "name": "John Doe",
+                "email": "test@test.com",
+                "phone_number": "07123456789"
             }
         )
         self.assertEqual(response.status_code, 400)
@@ -194,13 +194,13 @@ class TestView(APITestCase):
         response = self.client.post(
             f'/api/sales/reserve/{vehicle.id}/',
             {
-                "reservation_name": "John Doe",
-                "reservation_email": "test@test.com",
-                "reservation_phone_number": "07123456789"
+                "name": "John Doe",
+                "email": "test@test.com",
+                "phone_number": "07123456789"
             }
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(Reservations.objects.filter(
+        self.assertTrue(Reservation.objects.filter(
             name="John Doe",
             email="test@test.com",
             phone_number="07123456789",
@@ -226,22 +226,26 @@ class TestView(APITestCase):
             published=True
         ).save()
         vehicle = Vehicle.objects.get(slug="volvo-v70-r-1997")
+        data = {
+            "name": "Jane Doe",
+            "email": "test2@test.com",
+            "phone_number": "07123456781",
+            "tradein": {
+                "make": "Ford",
+                "model": "Focus",
+                "trim": "Zetec",
+                "year": 2014,
+                "mileage": 28614,
+                "comments": "Good car, body work in great shape.",
+            }
+        }
         response = self.client.post(
             f'/api/sales/reserve/{vehicle.id}/',
-            {
-                "reservation_name": "Jane Doe",
-                "reservation_email": "test2@test.com",
-                "reservation_phone_number": "07123456781",
-                "tradein_make": "Ford",
-                "tradein_model": "Focus",
-                "tradein_trim": "Zetec",
-                "tradein_year": 2014,
-                "tradein_mileage": 28614,
-                "tradein_comments": "Good car, body work in great shape.",
-            }
+            data=data,
+            format='json'
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(Reservations.objects.filter(
+        self.assertTrue(Reservation.objects.filter(
             name="Jane Doe",
             email="test2@test.com",
             phone_number="07123456781",
@@ -260,7 +264,7 @@ class TestView(APITestCase):
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
 class TestSalesModels(APITestCase):
 
-    @classmethod
+    @ classmethod
     def tearDownClass(cls):
         shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
@@ -304,21 +308,21 @@ class TestSalesModels(APITestCase):
 
     def reservations_model(self):
         vehicle = Vehicle.objects.get(make='Mercedes', mileage=172000)
-        Reservations.objects.create(
+        Reservation.objects.create(
             name='Matt Edwards',
             email='test@test.com',
             phone_number='07123456789',
             vehicle=vehicle,
             paymentIntent_id='testIdFromStripe'
         ).save()
-        reservation = Reservations.objects.get(name="Matt Edwards")
+        reservation = Reservation.objects.get(name="Matt Edwards")
         self.assertEqual(
             str(reservation),
             f'Matt Edwards reserved {vehicle.id} Mercedes 190E 2.3-16 - £11095.00'
         )
 
     def trade_in_model(self):
-        reservation = Reservations.objects.get(name="Matt Edwards")
+        reservation = Reservation.objects.get(name="Matt Edwards")
         TradeIn.objects.create(
             reservation=reservation,
             make='Ford',

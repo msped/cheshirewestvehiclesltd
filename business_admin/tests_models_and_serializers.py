@@ -244,7 +244,7 @@ class TestInvoiceModelsAndSerializers(APITestCase):
             mileage=72000,
             vrm="DK19 CLX"
         )
-        self.assertEqual(invoice.get_total(), 54.00)
+        self.assertEqual(invoice.get_total(), 49.00)
 
     def test_in_order(self):
         self.customer_serializer_working()

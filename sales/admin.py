@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Vehicle, VehicleImages, Reservations, TradeIn, ReservationAmount
+from .models import Vehicle, VehicleImages, Reservation, TradeIn, ReservationAmount
 
 # Register your models here.
 
 admin.site.register(ReservationAmount)
-admin.site.register(Reservations)
+admin.site.register(Reservation)
 admin.site.register(TradeIn)
 
 
