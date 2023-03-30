@@ -1,0 +1,8 @@
+**/*.pyc
+env/
+.git/
+.github/
+.vscode/
+Dockerfile
+.gitignore
+**/__pycache__/
