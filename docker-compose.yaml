@@ -1,18 +1,26 @@
 version: '3.10'
 
 services:
-  app:
+  api:
     platform: Linux/arm64
     build: .
     volumes:
       - .:/cheshirewestvehicles
     ports:
       - 8000:8000
-    image: app:cheshirewestvehicles
-    container_name: cwv_container
+    image: api:cheshirewestvehicles
+    container_name: cwv_api_container
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
       - db
+
+  web:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+    - ./frontend:/frontend
+
   db:
     image: postgres
     volumes:
